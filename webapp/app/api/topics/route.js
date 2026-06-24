@@ -27,7 +27,8 @@ export async function GET(request) {
     }
 
     const configObj = parseYaml(match[1]);
-    const subjects = configObj?.system_config?.subjects || [];
+    const rawSubjects = configObj?.system_config?.subjects || [];
+    const subjects = Array.isArray(rawSubjects) ? rawSubjects : rawSubjects.subjects || [];
     const subject = subjects.find(s => s.id === subjectId);
     
     let configTopics = [];

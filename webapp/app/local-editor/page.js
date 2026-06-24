@@ -134,7 +134,9 @@ export default function LocalEditorPage() {
       const res = await fetch('/api/local-editor/config');
       if (res.ok) {
         const data = await res.json();
-        setConfigSubjects(data.subjects || []);
+        const rawSubjects = data.subjects || [];
+        const subjectsArray = Array.isArray(rawSubjects) ? rawSubjects : rawSubjects.subjects || [];
+        setConfigSubjects(subjectsArray);
       }
     } catch (err) {
       console.error('Error loading config:', err);
