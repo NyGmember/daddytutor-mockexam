@@ -1,0 +1,1 @@
+1. จากรูป กำหนดให้ $\ell \parallel m$ และ $\angle ABC = 88^\circ$ [![illustration](../images/TEDET_Math_2557_G8_1_crop_0.png)] จงหาว่า $x$ เท่ากับกี่องศา

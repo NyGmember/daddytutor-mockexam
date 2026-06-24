@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  mock-exam:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: mock-exam-app
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - ADMIN_PASSWORD=admin123
+      - GITHUB_REPO_RAW_URL=https://raw.githubusercontent.com/badzola/Mock-exam/main/
+      - DATABASE_URL=file:/app/data/dev.db
+    volumes:
+      - db-data:/app/data
+      - image-data:/app/public/images
+
+volumes:
+  db-data:
+  image-data:
