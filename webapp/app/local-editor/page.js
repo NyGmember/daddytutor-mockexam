@@ -79,24 +79,55 @@ export default function LocalEditorPage() {
     }
   }, [subjectId]);
 
-  // Update default topic selection when config list loads or level changes
-  const currentSubject = configSubjects?.find?.(s => s.id === subjectId);
-  // Map levelId to the configuration level ID
-  // math_lower_secondary -> lower_secondary
-  // sci_primary -> primary
-  const configLevelId = levelId ? levelId.replace('math_', '').replace('sci_', '') : '';
-  const currentLevel = currentSubject?.levels?.find?.(l => l.id === configLevelId);
-  const availableTopics = currentLevel?.topics || [];
+  const getTopicsForConfig = (subId, lvlId) => {
+    const subject = configSubjects?.find?.(s => s.id === subId);
+    if (!subject) return [];
+
+    const configLvlId = lvlId ? lvlId.replace('math_', '').replace('sci_', '') : '';
+    if (subId === 'mathematics') {
+      const level = subject.levels?.find?.(l => l.id === configLvlId);
+      return level?.topics || [];
+    } else { // science
+      if (configLvlId === 'primary') {
+        const level = subject.levels?.find?.(l => l.id === 'primary');
+        const category = level?.categories?.find?.(c => c.id === 'general_science');
+        return category?.topics || [];
+      } else { // lower_secondary or upper_secondary
+        const level = subject.levels?.find?.(l => l.id === 'secondary');
+        if (!level) return [];
+        
+        if (configLvlId === 'lower_secondary') {
+          const category = level.categories?.find?.(c => c.id === 'general_science');
+          return category?.topics || [];
+        } else if (configLvlId === 'upper_secondary') {
+          const upperCategories = level.categories?.filter?.(c => c.id !== 'general_science') || [];
+          const allTopics = [];
+          for (const cat of upperCategories) {
+            if (Array.isArray(cat.topics)) {
+              allTopics.push(...cat.topics);
+            }
+          }
+          return allTopics;
+        }
+      }
+    }
+    return [];
+  };
+
+  const availableTopics = getTopicsForConfig(subjectId, levelId);
 
   useEffect(() => {
     if (availableTopics.length > 0) {
-      setTopicId(availableTopics[0].id);
-      setTopicNameTh(availableTopics[0].name_th);
+      const hasTopic = availableTopics.some(t => t.id === topicId);
+      if (!hasTopic && topicId !== 'custom') {
+        setTopicId(availableTopics[0].id);
+        setTopicNameTh(availableTopics[0].name_th || availableTopics[0].nameTh || '');
+      }
     } else {
       setTopicId('');
       setTopicNameTh('');
     }
-  }, [levelId, subjectId, configSubjects]);
+  }, [levelId, subjectId, configSubjects, availableTopics]);
 
   const loadConfig = async () => {
     try {
@@ -173,20 +204,19 @@ export default function LocalEditorPage() {
         setIsEditingExisting(true);
 
         // Check if standard topic
-        const configLevelId = q.levelId ? q.levelId.replace('math_', '').replace('sci_', '') : '';
-        const loadedSubject = configSubjects?.find?.(s => s.id === q.subjectId);
-        const loadedLevel = loadedSubject?.levels?.find?.(l => l.id === configLevelId);
-        const loadedTopics = loadedLevel?.topics || [];
+        const loadedTopics = getTopicsForConfig(q.subjectId, q.levelId);
         const isStandardTopic = loadedTopics.some(t => t.id === q.topicId);
 
         if (isStandardTopic) {
           setTopicId(q.topicId);
           setCustomTopicId('');
+          const matchedName = loadedTopics.find(t => t.id === q.topicId)?.name_th || q.topicNameTh || '';
+          setTopicNameTh(matchedName);
         } else {
           setTopicId('custom');
           setCustomTopicId(q.topicId);
+          setTopicNameTh(q.topicNameTh || '');
         }
-        setTopicNameTh(q.topicNameTh);
 
       } else {
         alert('ไม่สามารถโหลดข้อมูลข้อสอบได้');
@@ -435,7 +465,7 @@ export default function LocalEditorPage() {
     
     // Match Subject Thai Name
     const subject = configSubjects?.find?.(s => s.id === q.subjectId);
-    const subjectName = subject?.nameTh || '';
+    const subjectName = subject?.name_th || subject?.nameTh || '';
     if (subjectName.toLowerCase().includes(query)) return true;
     
     // Match Topic Thai Name or English ID
@@ -997,7 +1027,7 @@ export default function LocalEditorPage() {
 
                 {/* Topic selector (Dynamic from configuration.md) */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6">
-                  <div className="flex flex-col gap-1.5">
+                  <div className="flex flex-col gap-1.5 md:col-span-2">
                     <label className="text-xs md:text-sm font-bold text-gray-700 uppercase tracking-wider">หัวข้อหลักตามหลักสูตร (Topic ID)</label>
                     <select
                       value={topicId}
@@ -1008,7 +1038,8 @@ export default function LocalEditorPage() {
                           setCustomTopicId('');
                           setTopicNameTh('');
                         } else {
-                          const matchedName = availableTopics.find(t => t.id === selTopicId)?.name_th || '';
+                          const matched = availableTopics.find(t => t.id === selTopicId);
+                          const matchedName = matched?.name_th || matched?.nameTh || '';
                           setTopicNameTh(matchedName);
                         }
                       }}
@@ -1016,37 +1047,40 @@ export default function LocalEditorPage() {
                     >
                       {availableTopics.map(topic => (
                         <option key={topic.id} value={topic.id}>
-                          {topic.name_th} ({topic.id})
+                          {topic.name_th || topic.nameTh} ({topic.id})
                         </option>
                       ))}
                       <option value="custom">-- กำหนดเอง (Custom Topic) --</option>
                     </select>
                   </div>
 
-                  <div className="flex flex-col gap-1.5">
-                    <label className="text-xs md:text-sm font-bold text-gray-700 uppercase tracking-wider">ชื่อภาษาไทยหัวข้อ (Topic Name Thai)</label>
-                    <input
-                      type="text"
-                      placeholder="ชื่อหัวข้อข้อสอบ"
-                      value={topicNameTh}
-                      onChange={(e) => setTopicNameTh(e.target.value)}
-                      className="cartoon-input text-sm md:text-base py-2.5 px-4"
-                    />
-                  </div>
-
                   {topicId === 'custom' && (
-                    <div className="flex flex-col gap-1.5 md:col-span-2">
-                      <label className="text-xs md:text-sm font-bold text-gray-700 uppercase tracking-wider">รหัสหัวข้อภาษาอังกฤษ (Custom Topic ID) <span className="text-red-500">*</span></label>
-                      <input
-                        type="text"
-                        placeholder="พิมพ์รหัสหัวข้อ เช่น linear_equations, solid_geometry"
-                        value={customTopicId}
-                        onChange={(e) => setCustomTopicId(e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, '_'))}
-                        className="cartoon-input text-sm md:text-base py-2.5 px-4"
-                        required
-                      />
-                      <span className="text-[10px] text-gray-450 font-bold">ใช้ภาษาอังกฤษตัวพิมพ์เล็ก ตัวเลข ขีดกลาง (-) และขีดล่าง (_) เท่านั้น</span>
-                    </div>
+                    <>
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-xs md:text-sm font-bold text-gray-700 uppercase tracking-wider">ชื่อภาษาไทยหัวข้อ (Topic Name Thai) <span className="text-red-500">*</span></label>
+                        <input
+                          type="text"
+                          placeholder="ชื่อหัวข้อข้อสอบภาษาไทย"
+                          value={topicNameTh}
+                          onChange={(e) => setTopicNameTh(e.target.value)}
+                          className="cartoon-input text-sm md:text-base py-2.5 px-4"
+                          required
+                        />
+                      </div>
+
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-xs md:text-sm font-bold text-gray-700 uppercase tracking-wider">รหัสหัวข้อภาษาอังกฤษ (Custom Topic ID) <span className="text-red-500">*</span></label>
+                        <input
+                          type="text"
+                          placeholder="พิมพ์รหัสหัวข้อ เช่น linear_equations"
+                          value={customTopicId}
+                          onChange={(e) => setCustomTopicId(e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, '_'))}
+                          className="cartoon-input text-sm md:text-base py-2.5 px-4"
+                          required
+                        />
+                        <span className="text-[10px] text-gray-400 font-bold">ใช้ภาษาอังกฤษตัวพิมพ์เล็ก ตัวเลข ขีดกลาง (-) และขีดล่าง (_) เท่านั้น</span>
+                      </div>
+                    </>
                   )}
                 </div>
 

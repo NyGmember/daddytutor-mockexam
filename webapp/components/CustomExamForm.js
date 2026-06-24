@@ -221,7 +221,7 @@ export default function CustomExamForm({ subjects }) {
                   onChange={() => handleToggleTopic(topic.id)}
                   className="w-4 h-4 accent-[#E27B58] cursor-pointer"
                 />
-                {topic.nameTh}
+                {topic.nameTh} ({topic.count})
               </label>
             ))}
           </div>
