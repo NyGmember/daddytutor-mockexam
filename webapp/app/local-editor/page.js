@@ -434,7 +434,7 @@ export default function LocalEditorPage() {
     if (q.id.toLowerCase().includes(query)) return true;
     
     // Match Subject Thai Name
-    const subject = configSubjects.find(s => s.id === q.subjectId);
+    const subject = configSubjects?.find?.(s => s.id === q.subjectId);
     const subjectName = subject?.nameTh || '';
     if (subjectName.toLowerCase().includes(query)) return true;
     
