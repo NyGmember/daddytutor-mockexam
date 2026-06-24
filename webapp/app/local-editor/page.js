@@ -54,6 +54,7 @@ export default function LocalEditorPage() {
   // Active editors / views
   const [activeTab, setActiveTab] = useState('editor'); // 'editor', 'preview'
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedStatusFilters, setSelectedStatusFilters] = useState(['New']); // Array of 'New', 'Mod', 'Pub'
   const [saveLoading, setSaveLoading] = useState(false);
   const [saveMessage, setSaveMessage] = useState({ type: '', text: '' });
   const [isEditingExisting, setIsEditingExisting] = useState(false);
@@ -418,10 +419,38 @@ export default function LocalEditorPage() {
     setSaveMessage({ type: '', text: '' });
   };
 
-  // Filter list of questions based on search query
-  const filteredQuestionIds = (gitStatus.allQuestionIds || []).filter(qId => 
-    qId.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Filter list of questions based on search query and status tags
+  const filteredQuestions = (gitStatus.questionsList || []).filter(q => {
+    // 1. Tag filter check
+    if (selectedStatusFilters.length > 0 && !selectedStatusFilters.includes(q.status)) {
+      return false;
+    }
+
+    // 2. Search query check
+    if (!searchQuery) return true;
+    const query = searchQuery.toLowerCase();
+    
+    // Match ID
+    if (q.id.toLowerCase().includes(query)) return true;
+    
+    // Match Subject Thai Name
+    const subject = configSubjects.find(s => s.id === q.subjectId);
+    const subjectName = subject?.nameTh || '';
+    if (subjectName.toLowerCase().includes(query)) return true;
+    
+    // Match Topic Thai Name or English ID
+    const levelIdClean = q.levelId ? q.levelId.replace('math_', '').replace('sci_', '') : '';
+    const level = subject?.levels?.find?.(l => l.id === levelIdClean);
+    const topic = level?.topics?.find?.(t => t.id === q.topicId);
+    const topicName = topic?.name_th || '';
+    if (topicName.toLowerCase().includes(query) || q.topicId.toLowerCase().includes(query)) {
+      return true;
+    }
+    
+    return false;
+  });
+
+  const filteredQuestionIds = filteredQuestions.map(q => q.id);
 
   // Check if all filtered items are selected
   const isAllFilteredSelected = filteredQuestionIds.length > 0 && 
@@ -443,25 +472,27 @@ export default function LocalEditorPage() {
     }
   };
 
-  // Check if a question has Git changes (Modified or Untracked)
+  // Check if a question has Git changes (Modified, Untracked, or Published)
   const getGitBadge = (qId) => {
-    const changedQuestions = gitStatus.changedFiles?.questions || [];
-    const changedAnswers = gitStatus.changedFiles?.answers || [];
-
-    const isQChanged = changedQuestions.some(f => f.filepath.includes(qId));
-    const isAChanged = changedAnswers.some(f => f.filepath.includes(qId));
-
-    if (isQChanged || isAChanged) {
-      // Find git status prefix (e.g. M, A, ??)
-      const fileStatus = changedQuestions.find(f => f.filepath.includes(qId))?.status || 
-                         changedAnswers.find(f => f.filepath.includes(qId))?.status || 'M';
-      
-      const badgeColor = fileStatus === '??' ? 'bg-green-500 text-white' : 'bg-orange-500 text-white';
-      const label = fileStatus === '??' ? 'New' : 'Mod';
-      
-      return <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded border border-black ${badgeColor}`}>{label}</span>;
+    const q = (gitStatus.questionsList || []).find(x => x.id === qId);
+    if (!q) return null;
+    
+    let badgeColor = 'bg-blue-500 text-white';
+    let label = 'Pub';
+    
+    if (q.status === 'New') {
+      badgeColor = 'bg-green-500 text-white';
+      label = 'New';
+    } else if (q.status === 'Mod') {
+      badgeColor = 'bg-orange-500 text-white';
+      label = 'Mod';
     }
-    return null;
+    
+    return (
+      <span className={`text-[9px] font-extrabold px-1.5 py-0.5 rounded border border-black shadow-[1px_1px_0px_#000] uppercase ${badgeColor}`}>
+        {label}
+      </span>
+    );
   };
 
   // Toggle selection for push
@@ -517,15 +548,52 @@ export default function LocalEditorPage() {
               </h2>
             </div>
 
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="ค้นหารหัสข้อสอบ..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="cartoon-input w-full pl-9 text-sm py-2"
-              />
-              <Search size={16} className="absolute left-3.5 top-[13px] text-gray-400" />
+            <div className="flex flex-col gap-3">
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="ค้นหารหัสข้อสอบ หรือชื่อหัวข้อ..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="cartoon-input w-full text-sm py-2"
+                  style={{ paddingLeft: '2.5rem' }}
+                />
+                <Search size={16} className="absolute left-3.5 top-[13.5px] text-gray-400" />
+              </div>
+
+              {/* Tag Status Filters */}
+              <div className="flex items-center gap-2 text-xs font-bold text-gray-500">
+                <span>กรองสถานะ:</span>
+                <div className="flex gap-1.5 flex-wrap">
+                  {[
+                    { status: 'New', label: 'New', color: 'bg-green-500 text-white' },
+                    { status: 'Mod', label: 'Mod', color: 'bg-orange-500 text-white' },
+                    { status: 'Pub', label: 'Pub', color: 'bg-blue-500 text-white' }
+                  ].map(item => {
+                    const isSelected = selectedStatusFilters.includes(item.status);
+                    return (
+                      <button
+                        key={item.status}
+                        type="button"
+                        onClick={() => {
+                          setSelectedStatusFilters(prev => 
+                            prev.includes(item.status)
+                              ? prev.filter(s => s !== item.status)
+                              : [...prev, item.status]
+                          );
+                        }}
+                        className={`px-2 py-0.5 rounded border border-black shadow-[1.5px_1.5px_0px_#000] text-[9px] font-extrabold transition-all uppercase ${
+                          isSelected 
+                            ? `${item.color} translate-x-[0.5px] translate-y-[0.5px] shadow-[0.5px_0.5px_0px_#000]` 
+                            : 'bg-gray-200 text-gray-500 hover:bg-gray-300'
+                        }`}
+                      >
+                        {item.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
 
             {/* List box */}
