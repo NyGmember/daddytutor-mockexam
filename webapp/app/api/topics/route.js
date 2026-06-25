@@ -4,6 +4,13 @@ import fs from 'fs';
 import path from 'path';
 import { parseYaml } from '@/lib/yaml';
 
+function ensureArray(val, key) {
+  if (!val) return [];
+  if (Array.isArray(val)) return val;
+  if (val[key] && Array.isArray(val[key])) return val[key];
+  return [];
+}
+
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
   const subjectId = searchParams.get('subjectId');
@@ -28,33 +35,36 @@ export async function GET(request) {
 
     const configObj = parseYaml(match[1]);
     const rawSubjects = configObj?.system_config?.subjects || [];
-    const subjects = Array.isArray(rawSubjects) ? rawSubjects : rawSubjects.subjects || [];
+    const subjects = ensureArray(rawSubjects, 'subjects');
     const subject = subjects.find(s => s.id === subjectId);
     
     let configTopics = [];
     if (subject) {
       const configLvlId = levelId.replace('math_', '').replace('sci_', '');
+      const levels = ensureArray(subject.levels, 'levels');
+
       if (subjectId === 'mathematics') {
-        const level = subject.levels?.find(l => l.id === configLvlId);
-        configTopics = level?.topics || [];
+        const level = levels.find(l => l.id === configLvlId);
+        configTopics = ensureArray(level?.topics, 'topics');
       } else { // science
         if (configLvlId === 'primary') {
-          const level = subject.levels?.find(l => l.id === 'primary');
-          const category = level?.categories?.find(c => c.id === 'general_science');
-          configTopics = category?.topics || [];
+          const level = levels.find(l => l.id === 'primary');
+          const categories = ensureArray(level?.categories, 'categories');
+          const category = categories.find(c => c.id === 'general_science');
+          configTopics = ensureArray(category?.topics, 'topics');
         } else { // secondary -> lower_secondary or upper_secondary
-          const level = subject.levels?.find(l => l.id === 'secondary');
+          const level = levels.find(l => l.id === 'secondary');
           if (level) {
+            const categories = ensureArray(level.categories, 'categories');
             if (configLvlId === 'lower_secondary') {
-              const category = level.categories?.find(c => c.id === 'general_science');
-              configTopics = category?.topics || [];
+              const category = categories.find(c => c.id === 'general_science');
+              configTopics = ensureArray(category?.topics, 'topics');
             } else if (configLvlId === 'upper_secondary') {
-              const upperCategories = level.categories?.filter(c => c.id !== 'general_science') || [];
+              const upperCategories = categories.filter(c => c.id !== 'general_science') || [];
               const allTopics = [];
               for (const cat of upperCategories) {
-                if (Array.isArray(cat.topics)) {
-                  allTopics.push(...cat.topics);
-                }
+                const catTopics = ensureArray(cat.topics, 'topics');
+                allTopics.push(...catTopics);
               }
               configTopics = allTopics;
             }

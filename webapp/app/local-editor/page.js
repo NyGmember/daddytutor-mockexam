@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { renderMarkdown } from '@/lib/markdown';
 import { 
   Settings, Save, Upload, Send, Search, PlusCircle, RefreshCw, 
@@ -64,70 +64,72 @@ export default function LocalEditorPage() {
   const answerTextareaRef = useRef(null);
   const [activeTextarea, setActiveTextarea] = useState('question'); // 'question' or 'answer'
 
-  // Load configuration and status
+  // Load configuration and status on mount
   useEffect(() => {
     loadConfig();
     loadStatus();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Update level defaults when subject changes
-  useEffect(() => {
-    if (subjectId === 'mathematics') {
-      setLevelId('math_lower_secondary');
-    } else {
-      setLevelId('sci_lower_secondary');
-    }
-  }, [subjectId]);
+  const ensureArray = (val, key) => {
+    if (!val) return [];
+    if (Array.isArray(val)) return val;
+    if (val[key] && Array.isArray(val[key])) return val[key];
+    return [];
+  };
 
-  const getTopicsForConfig = (subId, lvlId) => {
-    const subject = configSubjects?.find?.(s => s.id === subId);
+  const getTopicsForConfig = useCallback((subId, lvlId, subjectsList = configSubjects) => {
+    const subject = subjectsList?.find?.(s => s.id === subId);
     if (!subject) return [];
 
     const configLvlId = lvlId ? lvlId.replace('math_', '').replace('sci_', '') : '';
+    const levels = ensureArray(subject.levels, 'levels');
+
     if (subId === 'mathematics') {
-      const level = subject.levels?.find?.(l => l.id === configLvlId);
-      return level?.topics || [];
+      const level = levels.find(l => l.id === configLvlId);
+      return ensureArray(level?.topics, 'topics');
     } else { // science
       if (configLvlId === 'primary') {
-        const level = subject.levels?.find?.(l => l.id === 'primary');
-        const category = level?.categories?.find?.(c => c.id === 'general_science');
-        return category?.topics || [];
+        const level = levels.find(l => l.id === 'primary');
+        const categories = ensureArray(level?.categories, 'categories');
+        const category = categories.find(c => c.id === 'general_science');
+        return ensureArray(category?.topics, 'topics');
       } else { // lower_secondary or upper_secondary
-        const level = subject.levels?.find?.(l => l.id === 'secondary');
+        const level = levels.find(l => l.id === 'secondary');
         if (!level) return [];
+        const categories = ensureArray(level.categories, 'categories');
         
         if (configLvlId === 'lower_secondary') {
-          const category = level.categories?.find?.(c => c.id === 'general_science');
-          return category?.topics || [];
+          const category = categories.find(c => c.id === 'general_science');
+          return ensureArray(category?.topics, 'topics');
         } else if (configLvlId === 'upper_secondary') {
-          const upperCategories = level.categories?.filter?.(c => c.id !== 'general_science') || [];
+          const upperCategories = categories.filter(c => c.id !== 'general_science') || [];
           const allTopics = [];
           for (const cat of upperCategories) {
-            if (Array.isArray(cat.topics)) {
-              allTopics.push(...cat.topics);
-            }
+            const catTopics = ensureArray(cat.topics, 'topics');
+            allTopics.push(...catTopics);
           }
           return allTopics;
         }
       }
     }
     return [];
-  };
+  }, [configSubjects]);
 
   const availableTopics = getTopicsForConfig(subjectId, levelId);
 
+  // Resolve custom topic to standard topic once config is loaded
   useEffect(() => {
-    if (availableTopics.length > 0) {
-      const hasTopic = availableTopics.some(t => t.id === topicId);
-      if (!hasTopic && topicId !== 'custom') {
-        setTopicId(availableTopics[0].id);
-        setTopicNameTh(availableTopics[0].name_th || availableTopics[0].nameTh || '');
+    if (configSubjects.length > 0 && topicId === 'custom' && customTopicId) {
+      const loadedTopics = getTopicsForConfig(subjectId, levelId);
+      const matched = loadedTopics.find(t => t.id === customTopicId);
+      if (matched) {
+        setTopicId(customTopicId);
+        setCustomTopicId('');
+        setTopicNameTh(matched.name_th || matched.nameTh || '');
       }
-    } else {
-      setTopicId('');
-      setTopicNameTh('');
     }
-  }, [levelId, subjectId, configSubjects, availableTopics]);
+  }, [configSubjects, subjectId, levelId, topicId, customTopicId, getTopicsForConfig]);
 
   const loadConfig = async () => {
     try {
@@ -137,6 +139,15 @@ export default function LocalEditorPage() {
         const rawSubjects = data.subjects || [];
         const subjectsArray = Array.isArray(rawSubjects) ? rawSubjects : rawSubjects.subjects || [];
         setConfigSubjects(subjectsArray);
+        
+        // Populate default topic on initial load if not set
+        if (!topicId) {
+          const initialTopics = getTopicsForConfig(subjectId, levelId, subjectsArray);
+          if (initialTopics.length > 0) {
+            setTopicId(initialTopics[0].id);
+            setTopicNameTh(initialTopics[0].name_th || initialTopics[0].nameTh || '');
+          }
+        }
       }
     } catch (err) {
       console.error('Error loading config:', err);
@@ -939,7 +950,20 @@ export default function LocalEditorPage() {
                     <label className="text-xs md:text-sm font-bold text-gray-700 uppercase tracking-wider">วิชา (Subject)</label>
                     <select
                       value={subjectId}
-                      onChange={(e) => setSubjectId(e.target.value)}
+                      onChange={(e) => {
+                        const newSub = e.target.value;
+                        setSubjectId(newSub);
+                        const defaultLvl = newSub === 'mathematics' ? 'math_lower_secondary' : 'sci_lower_secondary';
+                        setLevelId(defaultLvl);
+                        const newTopics = getTopicsForConfig(newSub, defaultLvl);
+                        if (newTopics.length > 0) {
+                          setTopicId(newTopics[0].id);
+                          setTopicNameTh(newTopics[0].name_th || newTopics[0].nameTh || '');
+                        } else {
+                          setTopicId('');
+                          setTopicNameTh('');
+                        }
+                      }}
                       className="cartoon-input text-sm md:text-base py-2.5 px-4 cursor-pointer"
                     >
                       <option value="mathematics">คณิตศาสตร์</option>
@@ -951,7 +975,18 @@ export default function LocalEditorPage() {
                     <label className="text-xs md:text-sm font-bold text-gray-700 uppercase tracking-wider">ระดับ (Level)</label>
                     <select
                       value={levelId}
-                      onChange={(e) => setLevelId(e.target.value)}
+                      onChange={(e) => {
+                        const newLvl = e.target.value;
+                        setLevelId(newLvl);
+                        const newTopics = getTopicsForConfig(subjectId, newLvl);
+                        if (newTopics.length > 0) {
+                          setTopicId(newTopics[0].id);
+                          setTopicNameTh(newTopics[0].name_th || newTopics[0].nameTh || '');
+                        } else {
+                          setTopicId('');
+                          setTopicNameTh('');
+                        }
+                      }}
                       className="cartoon-input text-sm md:text-base py-2.5 px-4 cursor-pointer"
                     >
                       {subjectId === 'mathematics' ? (
