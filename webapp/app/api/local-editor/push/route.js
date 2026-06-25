@@ -133,6 +133,32 @@ export async function POST(request) {
 
     fs.writeFileSync(versionPath, JSON.stringify(versionCatalog, null, 2), 'utf8');
 
+    // 4.5. Move published questions to the archive folder on disk
+    const archiveQuestionsDir = path.join(gitRoot, 'archive', 'questions');
+    const archiveAnswersDir = path.join(gitRoot, 'archive', 'answers');
+
+    if (!fs.existsSync(archiveQuestionsDir)) {
+      fs.mkdirSync(archiveQuestionsDir, { recursive: true });
+    }
+    if (!fs.existsSync(archiveAnswersDir)) {
+      fs.mkdirSync(archiveAnswersDir, { recursive: true });
+    }
+
+    for (const id of selectedIds) {
+      const qSrc = path.join(questionsDir, `${id}.md`);
+      const aSrc = path.join(answersDir, `${id}.md`);
+      
+      const qDest = path.join(archiveQuestionsDir, `${id}.md`);
+      const aDest = path.join(archiveAnswersDir, `${id}.md`);
+
+      if (fs.existsSync(qSrc)) {
+        fs.renameSync(qSrc, qDest);
+      }
+      if (fs.existsSync(aSrc)) {
+        fs.renameSync(aSrc, aDest);
+      }
+    }
+
     // 5. Git Commit and Push
     let gitLog = '';
     let gitPushSuccess = true;
@@ -144,8 +170,18 @@ export async function POST(request) {
       execSync(`git add releases/${patchFilename}`, { cwd: gitRoot });
       
       for (const id of selectedIds) {
-        execSync(`git add questions/${id}.md`, { cwd: gitRoot });
-        execSync(`git add answers/${id}.md`, { cwd: gitRoot });
+        try {
+          execSync(`git rm -f questions/${id}.md`, { cwd: gitRoot });
+        } catch (e) {
+          // File might not be tracked in git yet
+        }
+        try {
+          execSync(`git rm -f answers/${id}.md`, { cwd: gitRoot });
+        } catch (e) {
+          // File might not be tracked in git yet
+        }
+        execSync(`git add archive/questions/${id}.md`, { cwd: gitRoot });
+        execSync(`git add archive/answers/${id}.md`, { cwd: gitRoot });
       }
 
       for (const imgFilename of imageFilesToStage) {

@@ -126,9 +126,13 @@ export async function GET() {
       return 'New';
     };
 
-    // Combine database metadata with disk files list
+    // Combine database metadata with disk files list to include archived/published files from database
     const dbMap = new Map(dbQuestions.map(q => [q.id, q]));
-    const questionsList = diskQuestionIds.map(qId => {
+    const dbQuestionIds = dbQuestions.map(q => q.id);
+    const combinedSet = new Set([...diskQuestionIds, ...dbQuestionIds]);
+    const combinedQuestionIds = Array.from(combinedSet).sort();
+
+    const questionsList = combinedQuestionIds.map(qId => {
       const dbQ = dbMap.get(qId);
       return {
         id: qId,
@@ -145,7 +149,7 @@ export async function GET() {
       gitRoot,
       latestVersion,
       remoteUrl,
-      allQuestionIds: diskQuestionIds,
+      allQuestionIds: combinedQuestionIds,
       questionsList,
       changedFiles
     });
