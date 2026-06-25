@@ -118,6 +118,21 @@ export default function LocalEditorPage() {
 
   const availableTopics = getTopicsForConfig(subjectId, levelId);
 
+  const getSubjectNameTh = () => {
+    const subject = configSubjects?.find?.(s => s.id === subjectId);
+    return subject?.name_th || subject?.nameTh || (subjectId === 'mathematics' ? 'คณิตศาสตร์' : 'วิทยาศาสตร์');
+  };
+
+  const getLevelNameTh = () => {
+    const subject = configSubjects?.find?.(s => s.id === subjectId);
+    const cleanLvlId = levelId ? levelId.replace('math_', '').replace('sci_', '') : '';
+    const level = subject?.levels?.find?.(l => l.id === cleanLvlId);
+    if (level) {
+      return level.name_th || level.nameTh;
+    }
+    return levelId.includes('primary') ? 'ประถมศึกษา' : levelId.includes('lower') ? 'มัธยมศึกษาตอนต้น' : 'มัธยมศึกษาตอนปลาย';
+  };
+
   // Resolve custom topic to standard topic once config is loaded
   useEffect(() => {
     if (configSubjects.length > 0 && topicId === 'custom' && customTopicId) {
@@ -1277,18 +1292,21 @@ export default function LocalEditorPage() {
                 {/* Metadata Board */}
                 <div className="bg-[#FFFCEF] border-3 border-black p-4 rounded-2xl flex flex-wrap gap-x-6 gap-y-3 shadow-[4px_4px_0px_#000] text-sm font-bold text-gray-800">
                   <div className="flex items-center gap-1.5">
+                    <BookOpen size={16} className="text-gray-500" />
                     <span className="text-gray-500 uppercase tracking-wide text-xs">วิชา:</span>
                     <span className="bg-[#FFF4E5] border-2 border-black rounded-lg px-2.5 py-0.5 shadow-[1.5px_1.5px_0px_#000]">
-                      {subjectId === 'mathematics' ? 'คณิตศาสตร์' : 'วิทยาศาสตร์'}
+                      {getSubjectNameTh()}
                     </span>
                   </div>
                   <div className="flex items-center gap-1.5">
+                    <Layers size={16} className="text-gray-500" />
                     <span className="text-gray-500 uppercase tracking-wide text-xs">ระดับชั้น:</span>
                     <span className="bg-[#EBF7FF] border-2 border-black rounded-lg px-2.5 py-0.5 shadow-[1.5px_1.5px_0px_#000]">
-                      {levelId.includes('primary') ? 'ประถมศึกษา' : levelId.includes('lower') ? 'มัธยมศึกษาตอนต้น' : 'มัธยมศึกษาตอนปลาย'} ({grade || 'G7'})
+                      {getLevelNameTh()} ({grade || 'G7'})
                     </span>
                   </div>
                   <div className="flex items-center gap-1.5">
+                    <HelpCircle size={16} className="text-gray-500" />
                     <span className="text-gray-500 uppercase tracking-wide text-xs">หัวข้อ:</span>
                     <span className="bg-[#EFFFEC] border-2 border-black rounded-lg px-2.5 py-0.5 shadow-[1.5px_1.5px_0px_#000]">
                       {topicId === 'custom' ? (topicNameTh || customTopicId || 'กำหนดเอง') : (topicNameTh || topicId || 'ยังไม่ระบุ')} {topicId === 'custom' && customTopicId ? `(${customTopicId})` : topicId && topicId !== 'custom' ? `(${topicId})` : ''}
@@ -1297,7 +1315,7 @@ export default function LocalEditorPage() {
                   <div className="flex items-center gap-1.5">
                     <span className="text-gray-500 uppercase tracking-wide text-xs">ความยาก:</span>
                     <span className="flex items-center gap-0.5 text-[#E27B58]">
-                      {Array.from({ length: difficulty }).map((_, i) => (
+                      {Array.from({ length: Number(difficulty) || 0 }).map((_, i) => (
                         <Star key={i} size={16} fill="currentColor" stroke="black" strokeWidth={1.5} />
                       ))}
                     </span>
