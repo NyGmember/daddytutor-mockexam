@@ -10,7 +10,10 @@ export async function GET() {
   }
 
   try {
-    const configPath = path.join(process.cwd(), '..', 'configuration.md');
+    let configPath = path.join(process.cwd(), '..', 'configuration.md');
+    if (!fs.existsSync(configPath)) {
+      configPath = path.join(process.cwd(), 'configuration.md');
+    }
     
     if (!fs.existsSync(configPath)) {
       return NextResponse.json({ error: 'configuration.md not found' }, { status: 404 });
