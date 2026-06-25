@@ -1274,6 +1274,36 @@ export default function LocalEditorPage() {
               /* TAB 2: Live rendering preview */
               <div className="flex flex-col gap-6 p-4 md:p-6 bg-[#FAF7F0] border-3 border-black rounded-2xl shadow-inner min-h-[450px]">
                 
+                {/* Metadata Board */}
+                <div className="bg-[#FFFCEF] border-3 border-black p-4 rounded-2xl flex flex-wrap gap-x-6 gap-y-3 shadow-[4px_4px_0px_#000] text-sm font-bold text-gray-800">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-gray-500 uppercase tracking-wide text-xs">วิชา:</span>
+                    <span className="bg-[#FFF4E5] border-2 border-black rounded-lg px-2.5 py-0.5 shadow-[1.5px_1.5px_0px_#000]">
+                      {subjectId === 'mathematics' ? 'คณิตศาสตร์' : 'วิทยาศาสตร์'}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-gray-500 uppercase tracking-wide text-xs">ระดับชั้น:</span>
+                    <span className="bg-[#EBF7FF] border-2 border-black rounded-lg px-2.5 py-0.5 shadow-[1.5px_1.5px_0px_#000]">
+                      {levelId.includes('primary') ? 'ประถมศึกษา' : levelId.includes('lower') ? 'มัธยมศึกษาตอนต้น' : 'มัธยมศึกษาตอนปลาย'} ({grade || 'G7'})
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-gray-500 uppercase tracking-wide text-xs">หัวข้อ:</span>
+                    <span className="bg-[#EFFFEC] border-2 border-black rounded-lg px-2.5 py-0.5 shadow-[1.5px_1.5px_0px_#000]">
+                      {topicId === 'custom' ? (topicNameTh || customTopicId || 'กำหนดเอง') : (topicNameTh || topicId || 'ยังไม่ระบุ')} {topicId === 'custom' && customTopicId ? `(${customTopicId})` : topicId && topicId !== 'custom' ? `(${topicId})` : ''}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-gray-500 uppercase tracking-wide text-xs">ความยาก:</span>
+                    <span className="flex items-center gap-0.5 text-[#E27B58]">
+                      {Array.from({ length: difficulty }).map((_, i) => (
+                        <Star key={i} size={16} fill="currentColor" stroke="black" strokeWidth={1.5} />
+                      ))}
+                    </span>
+                  </div>
+                </div>
+
                 {/* Question Preview Box */}
                 <div className="bg-white border-3 border-black p-6 md:p-8 rounded-2xl relative overflow-hidden flex flex-col gap-3 shadow-[4px_4px_0px_#000]">
                   <div className="absolute top-0 right-0 bg-[#E27B58] text-white text-[10px] md:text-xs px-4 py-1.5 font-bold border-l-3 border-b-3 border-black rounded-bl-xl">

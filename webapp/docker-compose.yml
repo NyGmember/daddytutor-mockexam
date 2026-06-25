@@ -11,7 +11,7 @@ services:
       - "3000:3000"
     environment:
       - ADMIN_PASSWORD=admin123
-      - GITHUB_REPO_RAW_URL=https://raw.githubusercontent.com/badzola/Mock-exam/main/
+      - GITHUB_REPO_RAW_URL=https://github.com/NyGmember/daddytutor-mockexam/main/
       - DATABASE_URL=file:/app/data/dev.db
     volumes:
       - db-data:/app/data
