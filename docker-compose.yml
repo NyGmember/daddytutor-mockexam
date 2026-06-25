@@ -1,10 +1,8 @@
-version: '3.8'
-
 services:
   mock-exam:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: webapp/Dockerfile
     container_name: mock-exam-app
     restart: unless-stopped
     ports:
