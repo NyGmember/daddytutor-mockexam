@@ -3,14 +3,21 @@ exam_name: "TEDET"
 subject: "คณิตศาสตร์"
 level: "มัธยมต้น (G7-G9)"
 grade: "G7"
-year: 2557
-difficulty: 3
+year: "2557"
+difficulty: "3"
 topic_id: "numbers_and_algebra"
 topic_name: "จำนวนและพีชคณิต"
 answer: "39"
 ---
 
+# คำถาม
+
+14. กำหนดให้จำนวนในช่อง $\square$ มีค่าเพิ่มขึ้นครั้งละเท่า ๆ กัน จงหาค่าของ $b - a$
+
+[![illustration](../images/TEDET_Math_2557_G7_14_crop_0.png)]
+
 # คำอธิบายและวิธีทำ
+
 จากโจทย์ กำหนดให้ค่าของจำนวนในช่องสี่เหลี่ยมแต่ละช่องมีค่าเพิ่มขึ้นครั้งละเท่า ๆ กัน ซึ่งลักษณะเช่นนี้เรียกว่า **ลำดับเลขคณิต (Arithmetic Progression)**
 
 ให้:

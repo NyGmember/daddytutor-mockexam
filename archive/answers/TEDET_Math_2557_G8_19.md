@@ -3,12 +3,17 @@ exam_name: "TEDET"
 subject: "คณิตศาสตร์"
 level: "มัธยมต้น (G7-G9)"
 grade: "G8"
-year: 2557
-difficulty: 3
+year: "2557"
+difficulty: "3"
 topic_id: "numbers_and_algebra"
 topic_name: "จำนวนและพีชคณิต"
 answer: "35"
 ---
+
+# คำถาม
+
+19. กำหนดให้ $\frac{(5^4)^x(5^y)}{5^{2x}} = 5^7$
+และเมื่อเขียน $4x - 3(x - y) + y + 7$ ให้อยู่ในรูปของ $x$ จะได้ $-7x + k$ จงหาค่าของ $k$
 
 # คำอธิบายและวิธีทำ
 

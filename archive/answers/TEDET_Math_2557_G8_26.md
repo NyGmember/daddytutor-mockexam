@@ -3,12 +3,18 @@ exam_name: "TEDET"
 subject: "คณิตศาสตร์"
 level: "มัธยมต้น (G7-G9)"
 grade: "G8"
-year: 2557
-difficulty: 3
+year: "2557"
+difficulty: "3"
 topic_id: "numbers_and_algebra"
 topic_name: "จำนวนและพีชคณิต"
 answer: "100"
 ---
+
+# คำถาม
+
+26. ถ้าคำตอบใด ๆ ของสมการ
+$$\frac{x-2}{3} = \frac{y+3}{4}$$
+เป็นคำตอบของสมการ $ax + by = 34$ ด้วยเสมอ จงหาค่าของ $a^2 + b^2$
 
 # คำอธิบายและวิธีทำ
 

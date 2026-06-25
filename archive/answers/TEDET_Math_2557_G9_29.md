@@ -3,12 +3,20 @@ exam_name: "TEDET"
 subject: "คณิตศาสตร์"
 level: "มัธยมต้น (G7-G9)"
 grade: "G9"
-year: 2557
-difficulty: 4
+year: "2557"
+difficulty: "4"
 topic_id: "measurement_and_geometry"
 topic_name: "การวัดและเรขาคณิต"
 answer: "75"
 ---
+
+# คำถาม
+
+29. จากรูป กำหนดให้ $DB = 2BC$, $\angle BAC = 15^\circ$ และ $\angle ABC = 120^\circ$
+
+[![illustration](../images/TEDET_Math_2557_G9_29_crop_0.png)]
+
+จงหาว่า $\angle ADB$ เท่ากับกี่องศา
 
 # คำอธิบายและวิธีทำ
 

@@ -3,12 +3,18 @@ exam_name: "TEDET"
 subject: "คณิตศาสตร์"
 level: "มัธยมต้น (G7-G9)"
 grade: "G9"
-year: 2557
-difficulty: 2
+year: "2557"
+difficulty: "2"
 topic_id: "numbers_and_algebra"
 topic_name: "จำนวนและพีชคณิต"
 answer: "32"
 ---
+
+# คำถาม
+
+15. ถ้าจำนวนเต็ม $a, b$ และ $c$ สอดคล้องกับการแยกตัวประกอบต่อไปนี้
+$$(3x+5)^2 - (x-4)^2 = (4x+a)(bx+c)$$
+จงหาค่าของ $a+2b+3c$
 
 # คำอธิบายและวิธีทำ
 

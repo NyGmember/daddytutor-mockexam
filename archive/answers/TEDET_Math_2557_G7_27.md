@@ -3,12 +3,16 @@ exam_name: "TEDET"
 subject: "คณิตศาสตร์"
 level: "มัธยมต้น (G7-G9)"
 grade: "G7"
-year: 2557
-difficulty: 4
+year: "2557"
+difficulty: "4"
 topic_id: "numbers_and_algebra"
 topic_name: "จำนวนและพีชคณิต"
 answer: "5"
 ---
+
+# คำถาม
+
+27. มีจำนวนเต็ม $n$ (เมื่อ $1 \le n \le 100$) ทั้งหมดกี่ตัว ซึ่งจำนวนเต็มบวกที่หาร $n$ ลงตัวมีทั้งหมด 12 ตัว
 
 # คำอธิบายและวิธีทำ
 

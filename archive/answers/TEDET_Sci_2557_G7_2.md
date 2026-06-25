@@ -3,12 +3,32 @@ exam_name: "TEDET"
 subject: "วิทยาศาสตร์"
 level: "มัธยมต้น (G7-G9)"
 grade: "G7"
-year: 2557
-difficulty: 1
+year: "2557"
+difficulty: "1"
 topic_id: "basic_physics"
 topic_name: "ฟิสิกส์พื้นฐาน"
 answer: "5"
 ---
+
+# คำถาม
+
+2. พิจารณาข้อมูลต่อไปนี้
+
+| | |
+|---|---|
+| ⓐ | นำผลที่ได้จากการทดลองไปวิเคราะห์และหาความสัมพันธ์ |
+| ⓑ | การลงความเห็นเบื้องต้นเกี่ยวกับปัญหาโดยใช้ความรู้หรือประสบการณ์ทางวิทยาศาสตร์ |
+| ⓒ | ทำการทดลองเพื่อพิสูจน์สมมติฐาน |
+| ⓓ | การค้นพบปัญหาโดยการสังเกตปรากฏการณ์ธรรมชาติแล้วออกไปค้นคว้าในสิ่งที่สงสัย |
+| ⓔ | การวินิจฉัยผลการวิเคราะห์ข้อมูลว่าสอดคล้องกับสมมติฐานที่วางไว้ในตอนแรกหรือไม่ |
+
+ข้อใดเรียงลำดับกระบวนการค้นคว้าทางวิทยาศาสตร์ได้ถูกต้อง
+
+① ⓐ $\rightarrow$ ⓓ $\rightarrow$ ⓑ $\rightarrow$ ⓔ $\rightarrow$ ⓒ
+② ⓐ $\rightarrow$ ⓔ $\rightarrow$ ⓓ $\rightarrow$ ⓑ $\rightarrow$ ⓒ
+③ ⓑ $\rightarrow$ ⓒ $\rightarrow$ ⓐ $\rightarrow$ ⓔ $\rightarrow$ ⓓ
+④ ⓓ $\rightarrow$ ⓑ $\rightarrow$ ⓐ $\rightarrow$ ⓔ $\rightarrow$ ⓒ
+⑤ ⓓ $\rightarrow$ ⓑ $\rightarrow$ ⓒ $\rightarrow$ ⓐ $\rightarrow$ ⓔ
 
 # คำอธิบายและวิธีทำ
 

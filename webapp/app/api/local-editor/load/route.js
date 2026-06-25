@@ -83,7 +83,7 @@ export async function GET(request) {
         console.warn('Prisma load query failed:', dbErr.message);
       }
 
-      if (dbQ) {
+      if (dbQ && dbQ.questionText) {
         questionText = dbQ.questionText;
         answerText = dbQ.answerText;
         subjectId = dbQ.subjectId;

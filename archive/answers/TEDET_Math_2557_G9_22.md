@@ -3,12 +3,16 @@ exam_name: "TEDET"
 subject: "คณิตศาสตร์"
 level: "มัธยมต้น (G7-G9)"
 grade: "G9"
-year: 2557
-difficulty: 2
+year: "2557"
+difficulty: "2"
 topic_id: "numbers_and_algebra"
 topic_name: "จำนวนและพีชคณิต"
 answer: "24"
 ---
+
+# คำถาม
+
+22. จงหาผลบวกของจำนวนเต็ม $n$ ทั้งหมดที่ทำให้ $n^2 - 24n + 108$ เป็นจำนวนเฉพาะ
 
 # คำอธิบายและวิธีทำ
 

@@ -3,12 +3,20 @@ exam_name: "TEDET"
 subject: "คณิตศาสตร์"
 level: "มัธยมต้น (G7-G9)"
 grade: "G7"
-year: 2557
-difficulty: 4
+year: "2557"
+difficulty: "4"
 topic_id: "numbers_and_algebra"
 topic_name: "จำนวนและพีชคณิต"
 answer: "198"
 ---
+
+# คำถาม
+
+19. นำรูปสี่เหลี่ยมจัตุรัส (ที่มีเส้นทแยงมุมสองเส้น) จำนวน 20 รูปมาเรียงต่อกัน ดังรูป
+
+![illustration](../images/TEDET_Math_2557_G7_19_crop_0.png)
+
+จงหาว่ามีรูปสามเหลี่ยม (ทุกขนาด) ทั้งหมดกี่รูป
 
 # คำอธิบายและวิธีทำ
 

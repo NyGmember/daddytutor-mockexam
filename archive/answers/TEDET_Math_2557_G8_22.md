@@ -3,12 +3,18 @@ exam_name: "TEDET"
 subject: "คณิตศาสตร์"
 level: "มัธยมต้น (G7-G9)"
 grade: "G8"
-year: 2557
-difficulty: 3
+year: "2557"
+difficulty: "3"
 topic_id: "numbers_and_algebra"
 topic_name: "จำนวนและพีชคณิต"
 answer: "12"
 ---
+
+# คำถาม
+
+22. ถ้าจำนวนเต็ม $a$ และ $b$ สอดคล้องกับเงื่อนไข
+$$\frac{4^{a+b}}{2^{5b}} = 32 \quad \text{และ} \quad \frac{9^a}{3^{a+b}} = 27$$
+จงหาค่าของ $3ab$
 
 # คำอธิบายและวิธีทำ
 

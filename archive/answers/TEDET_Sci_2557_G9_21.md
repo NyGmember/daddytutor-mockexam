@@ -3,12 +3,26 @@ exam_name: "TEDET"
 subject: "วิทยาศาสตร์"
 level: "มัธยมต้น (G7-G9)"
 grade: "G9"
-year: 2557
-difficulty: 3
+year: "2557"
+difficulty: "3"
 topic_id: "basic_physics"
 topic_name: "ฟิสิกส์พื้นฐาน"
 answer: "1"
 ---
+
+# คำถาม
+
+21. จากภาพเป็นการต่อหลอดไฟ 3 หลอด
+
+[![illustration](../images/TEDET_Sci_2557_G9_21_crop_0.png)]
+
+ข้อใดแสดงการต่อวงจรแบบอนุกรมและแบบขนานของหลอดไฟทั้งหมดได้ถูกต้องตามลำดับ
+
+① A และ B
+② A และ C
+③ B และ A
+④ B และ C
+⑤ C และ A
 
 # คำอธิบายและวิธีทำ
 

@@ -3,14 +3,22 @@ exam_name: "TEDET"
 subject: "คณิตศาสตร์"
 level: "มัธยมต้น (G7-G9)"
 grade: "G8"
-year: 2557
-difficulty: 2
+year: "2557"
+difficulty: "2"
 topic_id: "numbers_and_algebra"
 topic_name: "จำนวนและพีชคณิต"
 answer: "8"
 ---
 
+# คำถาม
+
+7. ถ้า $x = a, y = b$ เป็นคำตอบของระบบสมการ
+$$4x - 5y = -12$$
+$$5x + 3y = 22$$
+จงหาค่าของ $a \times b$
+
 # คำอธิบายและวิธีทำ
+
 กำหนดระบบสมการเชิงเส้น:
 1)  $$4x - 5y = -12$$
 2)  $$5x + 3y = 22$$

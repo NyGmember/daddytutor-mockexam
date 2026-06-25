@@ -3,12 +3,20 @@ exam_name: "TEDET"
 subject: "วิทยาศาสตร์"
 level: "มัธยมต้น (G7-G9)"
 grade: "G9"
-year: 2557
-difficulty: 2
+year: "2557"
+difficulty: "2"
 topic_id: "basic_physics"
 topic_name: "ฟิสิกส์พื้นฐาน"
 answer: "1"
 ---
+
+# คำถาม
+
+19. จากภาพวงจรไฟฟ้า ข้อใดแสดงสัญลักษณ์ถ่านไฟฉายและตัวต้านทานได้ถูกต้องตามลำดับ
+
+[![illustration](../images/TEDET_Sci_2557_G9_19_crop_0.png)]
+
+[![options](../images/TEDET_Sci_2557_G9_19_crop_1.png)]
 
 # คำอธิบายและวิธีทำ
 

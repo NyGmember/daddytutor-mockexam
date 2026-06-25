@@ -3,12 +3,17 @@ exam_name: "TEDET"
 subject: "คณิตศาสตร์"
 level: "มัธยมต้น (G7-G9)"
 grade: "G7"
-year: 2557
-difficulty: 2
+year: "2557"
+difficulty: "2"
 topic_id: "numbers_and_algebra"
 topic_name: "จำนวนและพีชคณิต"
 answer: "33"
 ---
+
+# คำถาม
+
+17. จงหาผลลัพธ์ต่อไปนี้
+$$10 - \frac{1}{2} \times \left[ \frac{9}{5} + \left( -\frac{2}{5} \right) \times \left\{ \frac{3}{4} - \frac{7}{2} \times \left( -\frac{1}{4} \right) \right\} \right] \div \left( -\frac{1}{40} \right)$$
 
 # คำอธิบายและวิธีทำ
 

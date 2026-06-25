@@ -3,12 +3,22 @@ exam_name: "TEDET"
 subject: "คณิตศาสตร์"
 level: "มัธยมต้น (G7-G9)"
 grade: "G7"
-year: 2557
-difficulty: 3
+year: "2557"
+difficulty: "3"
 topic_id: "measurement_and_geometry"
 topic_name: "การวัดและเรขาคณิต"
 answer: "2"
 ---
+
+# คำถาม
+
+20. รูปสี่เหลี่ยมมุมฉาก (A) มีขนาด $10\text{ cm} \times 20\text{ cm}$
+- รูปทรง (B) ได้จากการหมุนรูป (A) โดยมีด้านยาวของรูป (A) เป็นแกนหมุน
+- รูปทรง (C) ได้จากการหมุนรูป (A) โดยมีด้านกว้างของรูป (A) เป็นแกนหมุน
+
+![illustration](../images/TEDET_Math_2557_G7_20_crop_0.png)
+
+ถ้ารูปทรง (B) มีปริมาตร $a\text{ cm}^3$ และรูปทรง (C) มีปริมาตร $b\text{ cm}^3$ แล้วจงหาค่าของ $\frac{b}{a}$
 
 # คำอธิบายและวิธีทำ
 

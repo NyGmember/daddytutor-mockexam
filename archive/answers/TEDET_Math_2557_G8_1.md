@@ -3,14 +3,19 @@ exam_name: "TEDET"
 subject: "คณิตศาสตร์"
 level: "มัธยมต้น (G7-G9)"
 grade: "G8"
-year: 2557
-difficulty: 2
+year: "2557"
+difficulty: "2"
 topic_id: "measurement_and_geometry"
 topic_name: "การวัดและเรขาคณิต"
 answer: "46"
 ---
 
+# คำถาม
+
+1. จากรูป กำหนดให้ $\ell \parallel m$ และ $\angle ABC = 88^\circ$ [![illustration](../images/TEDET_Math_2557_G8_1_crop_0.png)] จงหาว่า $x$ เท่ากับกี่องศา
+
 # คำอธิบายและวิธีทำ
+
 ลากเส้นตรง $n$ ผ่านจุด $B$ ให้ขนานกับเส้นตรง $\ell$ และ $m$ (นั่นคือ $\ell \parallel n \parallel m$)
 
 พิจารณาความสัมพันธ์ของมุมต่าง ๆ ดังนี้:

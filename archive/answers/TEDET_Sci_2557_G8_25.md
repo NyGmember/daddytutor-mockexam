@@ -3,12 +3,18 @@ exam_name: "TEDET"
 subject: "วิทยาศาสตร์"
 level: "มัธยมต้น (G7-G9)"
 grade: "G8"
-year: 2557
-difficulty: 3
+year: "2557"
+difficulty: "3"
 topic_id: "basic_physics"
 topic_name: "ฟิสิกส์พื้นฐาน"
 answer: "2"
 ---
+
+# คำถาม
+
+25. ภาพในข้อใดแสดงทางเดินของแสงผ่านเลนส์ที่นำมาใช้ทำแว่นตาเพื่อแก้ปัญหาการมองเห็นของคนสายตาสั้นได้ถูกต้อง
+
+[![illustration](../images/TEDET_Sci_2557_G8_25_crop_0.png)]
 
 # คำอธิบายและวิธีทำ
 

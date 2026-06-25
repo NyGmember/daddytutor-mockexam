@@ -3,12 +3,23 @@ exam_name: "TEDET"
 subject: "คณิตศาสตร์"
 level: "มัธยมต้น (G7-G9)"
 grade: "G8"
-year: 2557
-difficulty: 4
+year: "2557"
+difficulty: "4"
 topic_id: "measurement_and_geometry"
 topic_name: "การวัดและเรขาคณิต"
 answer: "89"
 ---
+
+# คำถาม
+
+21. จากรูป กำหนดให้
+- $V_1$ เป็นปริมาตรของรูปทรงที่ได้จากการหมุนกราฟ $y = ax$ เมื่อ $0 \le x \le 2$ โดยมีแกน $x$ เป็นแกนหมุน
+- $V_2$ เป็นปริมาตรของรูปทรงที่ได้จากการหมุนกราฟ $y = 3ax$ เมื่อ $0 \le x \le 3$ โดยมีแกน $y$ เป็นแกนหมุน
+
+[![illustration](../images/TEDET_Math_2557_G8_21_crop_0.png)]
+
+ถ้า $\frac{V_1}{V_2} = \frac{n}{m}a$ จงหาค่าของ $m + n$
+($a > 0$ และ $\frac{n}{m}$ อยู่ในรูปเศษส่วนอย่างต่ำ)
 
 # คำอธิบายและวิธีทำ
 

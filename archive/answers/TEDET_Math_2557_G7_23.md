@@ -3,12 +3,16 @@ exam_name: "TEDET"
 subject: "คณิตศาสตร์"
 level: "มัธยมต้น (G7-G9)"
 grade: "G7"
-year: 2557
-difficulty: 3
+year: "2557"
+difficulty: "3"
 topic_id: "numbers_and_algebra"
 topic_name: "จำนวนและพีชคณิต"
 answer: "12"
 ---
+
+# คำถาม
+
+23. กำหนดให้ $a = 2^{15}$ และ $b = 5^{10} + 1$ เมื่อแสดงค่าของ $a \times b$ ในระบบตัวเลขฐานสิบ จะได้จำนวนที่มีกี่หลัก
 
 # คำอธิบายและวิธีทำ
 

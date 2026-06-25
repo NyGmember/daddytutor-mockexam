@@ -3,12 +3,20 @@ exam_name: "TEDET"
 subject: "คณิตศาสตร์"
 level: "มัธยมต้น (G7-G9)"
 grade: "G9"
-year: 2557
-difficulty: 3
+year: "2557"
+difficulty: "3"
 topic_id: "measurement_and_geometry"
 topic_name: "การวัดและเรขาคณิต"
 answer: "36"
 ---
+
+# คำถาม
+
+10. จากรูป กำหนดให้ $G$ เป็นจุดเซนทรอยด์ของ $\triangle ABC$
+
+[![illustration](../images/TEDET_Math_2557_G9_10_crop_0.png)]
+
+ถ้าพื้นที่ของ $\square ADGE$ เท่ากับ 12 ตารางหน่วย จงหาว่า $\triangle ABC$ มีพื้นที่เท่ากับกี่ตารางหน่วย
 
 # คำอธิบายและวิธีทำ
 

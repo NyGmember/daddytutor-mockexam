@@ -3,12 +3,20 @@ exam_name: "TEDET"
 subject: "คณิตศาสตร์"
 level: "มัธยมต้น (G7-G9)"
 grade: "G7"
-year: 2557
-difficulty: 4
+year: "2557"
+difficulty: "4"
 topic_id: "numbers_and_algebra"
 topic_name: "จำนวนและพีชคณิต"
 answer: "40"
 ---
+
+# คำถาม
+
+30. กำหนดให้ $a, b, c, d, e, f$ แทนเลขโดดที่มีค่าไม่ซ้ำกันตั้งแต่ 1 ถึง 6 และสอดคล้องกับเงื่อนไขทั้งสองข้อต่อไปนี้
+(ก) $a+b < c+d$
+(ข) $c+e < a < f$
+
+จงหาค่าของ $a + 2b + 3c + 4d$
 
 # คำอธิบายและวิธีทำ
 

@@ -3,12 +3,16 @@ exam_name: "TEDET"
 subject: "คณิตศาสตร์"
 level: "มัธยมต้น (G7-G9)"
 grade: "G9"
-year: 2557
-difficulty: 3
+year: "2557"
+difficulty: "3"
 topic_id: "numbers_and_algebra"
 topic_name: "จำนวนและพีชคณิต"
 answer: "99"
 ---
+
+# คำถาม
+
+13. ให้ $x = \frac{3-2\sqrt{2}}{3+2\sqrt{2}}$ จงหาค่าของ $x^2 - 34x + 100$
 
 # คำอธิบายและวิธีทำ
 

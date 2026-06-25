@@ -3,14 +3,20 @@ exam_name: "TEDET"
 subject: "คณิตศาสตร์"
 level: "มัธยมต้น (G7-G9)"
 grade: "G9"
-year: 2557
-difficulty: 1
+year: "2557"
+difficulty: "1"
 topic_id: "numbers_and_algebra"
 topic_name: "จำนวนและพีชคณิต"
 answer: "10"
 ---
 
+# คำถาม
+
+6. จงหาผลลัพธ์ต่อไปนี้
+$$\frac{2004^2 - 1996^2}{204^2 - 196^2}$$
+
 # คำอธิบายและวิธีทำ
+
 ต้องการหาค่าของนิพจน์:
 $$\frac{2004^2 - 1996^2}{204^2 - 196^2}$$
 

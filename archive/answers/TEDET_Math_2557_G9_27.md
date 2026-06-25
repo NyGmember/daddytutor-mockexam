@@ -3,12 +3,16 @@ exam_name: "TEDET"
 subject: "คณิตศาสตร์"
 level: "มัธยมต้น (G7-G9)"
 grade: "G9"
-year: 2557
-difficulty: 3
+year: "2557"
+difficulty: "3"
 topic_id: "numbers_and_algebra"
 topic_name: "จำนวนและพีชคณิต"
 answer: "9"
 ---
+
+# คำถาม
+
+27. จงหาว่ามีคู่อันดับ $(x,y)$ ของจำนวนเต็มบวกทั้งหมดกี่คู่ที่ $xy$ มีค่าเป็น 10 เท่าของ $x + y$
 
 # คำอธิบายและวิธีทำ
 

@@ -3,12 +3,20 @@ exam_name: "TEDET"
 subject: "คณิตศาสตร์"
 level: "มัธยมต้น (G7-G9)"
 grade: "G9"
-year: 2557
-difficulty: 3
+year: "2557"
+difficulty: "3"
 topic_id: "measurement_and_geometry"
 topic_name: "การวัดและเรขาคณิต"
 answer: "24"
 ---
+
+# คำถาม
+
+20. จากรูป $\angle BAC = \angle ADC = 90^\circ$
+
+[![illustration](../images/TEDET_Math_2557_G9_20_crop_0.png)]
+
+ถ้า $AB = 20\text{ cm}$ และ $BD = 16\text{ cm}$ จงหาว่าผลบวกของความยาวของ $\overline{AC}$ และ $\overline{CD}$ เท่ากับกี่ $\text{cm}$
 
 # คำอธิบายและวิธีทำ
 

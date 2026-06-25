@@ -3,12 +3,17 @@ exam_name: "TEDET"
 subject: "คณิตศาสตร์"
 level: "มัธยมต้น (G7-G9)"
 grade: "G9"
-year: 2557
-difficulty: 3
+year: "2557"
+difficulty: "3"
 topic_id: "numbers_and_algebra"
 topic_name: "จำนวนและพีชคณิต"
 answer: "60"
 ---
+
+# คำถาม
+
+21. ถ้า $\sqrt{3} + \sqrt{5} = n + a$ โดยที่ $n$ เป็นจำนวนเต็ม และ $0 \le a < 1$ (กล่าวคือ $n$ เป็นส่วนจำนวนเต็ม และ $a$ เป็นส่วนทศนิยมของ $\sqrt{3} + \sqrt{5}$) จงหาค่าของ $b$ ที่สอดคล้องกับสมการต่อไปนี้
+$$a^2 + 6a + 1 = \sqrt{b}$$
 
 # คำอธิบายและวิธีทำ
 

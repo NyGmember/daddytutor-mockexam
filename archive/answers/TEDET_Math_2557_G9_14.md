@@ -3,12 +3,16 @@ exam_name: "TEDET"
 subject: "คณิตศาสตร์"
 level: "มัธยมต้น (G7-G9)"
 grade: "G9"
-year: 2557
-difficulty: 3
+year: "2557"
+difficulty: "3"
 topic_id: "numbers_and_algebra"
 topic_name: "จำนวนและพีชคณิต"
 answer: "27"
 ---
+
+# คำถาม
+
+14. ให้ $x = \frac{\sqrt{3}-1}{\sqrt{3}+1}$ และ $y = \frac{\sqrt{3}+1}{\sqrt{3}-1}$ จงหาค่าของ $2x^2 - xy + 2y^2$
 
 # คำอธิบายและวิธีทำ
 

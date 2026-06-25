@@ -3,12 +3,19 @@ exam_name: "TEDET"
 subject: "คณิตศาสตร์"
 level: "มัธยมต้น (G7-G9)"
 grade: "G8"
-year: 2557
-difficulty: 3
+year: "2557"
+difficulty: "3"
 topic_id: "numbers_and_algebra"
 topic_name: "จำนวนและพีชคณิต"
 answer: "19"
 ---
+
+# คำถาม
+
+10. ถ้า $a$ และ $b$ เป็นจำนวนเต็มที่ทำให้
+$$(6x^2y + 15xy^2) \div 3xy + (3xy - 18y^2 - 24y) \div (-3y) = x + ay + b$$
+โดยที่ $x$ และ $y$ เป็นจำนวนจริงใด ๆ ที่ไม่เป็นศูนย์
+จงหาค่าของ $a + b$
 
 # คำอธิบายและวิธีทำ
 

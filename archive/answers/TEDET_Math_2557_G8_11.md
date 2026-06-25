@@ -3,12 +3,19 @@ exam_name: "TEDET"
 subject: "คณิตศาสตร์"
 level: "มัธยมต้น (G7-G9)"
 grade: "G8"
-year: 2557
-difficulty: 3
+year: "2557"
+difficulty: "3"
 topic_id: "measurement_and_geometry"
 topic_name: "การวัดและเรขาคณิต"
 answer: "105"
 ---
+
+# คำถาม
+
+11. จากรูป กำหนดให้ $\ell \parallel m$
+[![illustration](../images/TEDET_Math_2557_G8_11_crop_0.png)]
+
+จงหาว่า $x$ เท่ากับกี่องศา
 
 # คำอธิบายและวิธีทำ
 

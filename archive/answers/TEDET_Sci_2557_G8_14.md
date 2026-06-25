@@ -3,12 +3,26 @@ exam_name: "TEDET"
 subject: "วิทยาศาสตร์"
 level: "มัธยมต้น (G7-G9)"
 grade: "G8"
-year: 2557
-difficulty: 2
+year: "2557"
+difficulty: "2"
 topic_id: "basic_earth_astronomy_space"
 topic_name: "โลก ดาราศาสตร์ และอวกาศพื้นฐาน"
 answer: "1"
 ---
+
+# คำถาม
+
+14. จากภาพแสดงลักษณะการไหลของน้ำ (ก) และภาพหน้าตัดของลำน้ำนั้น (ข)
+
+[![illustration](../images/TEDET_Sci_2557_G8_14_crop_0.png)]
+
+ภาพหน้าตัด (ข) แสดงการไหลของน้ำในภาพ (ก) บริเวณใด
+
+① ทิศทาง A - B  
+② ทิศทาง A - C  
+③ ทิศทาง B - C  
+④ ทิศทาง B - D  
+⑤ ทิศทาง C - D
 
 # คำอธิบายและวิธีทำ
 

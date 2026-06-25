@@ -3,12 +3,26 @@ exam_name: "TEDET"
 subject: "วิทยาศาสตร์"
 level: "มัธยมต้น (G7-G9)"
 grade: "G7"
-year: 2557
-difficulty: 1
+year: "2557"
+difficulty: "1"
 topic_id: "basic_chemistry"
 topic_name: "เคมีพื้นฐาน"
 answer: "2"
 ---
+
+# คำถาม
+
+12. จากตารางเป็นการจำแนกธาตุ
+
+[![illustration](../images/TEDET_Sci_2557_G7_12_crop_0.png)]
+
+ข้อใดคือเกณฑ์ที่ใช้ในการจำแนกธาตุ A และ B
+
+① สีของเปลวไฟ
+② โลหะและอโลหะ
+③ สถานะของสาร
+④ ส่วนประกอบของสาร
+⑤ การทำปฏิกิริยากับออกซิเจน
 
 # คำอธิบายและวิธีทำ
 

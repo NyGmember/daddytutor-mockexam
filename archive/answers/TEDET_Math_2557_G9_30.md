@@ -3,12 +3,20 @@ exam_name: "TEDET"
 subject: "คณิตศาสตร์"
 level: "มัธยมต้น (G7-G9)"
 grade: "G9"
-year: 2557
-difficulty: 4
+year: "2557"
+difficulty: "4"
 topic_id: "measurement_and_geometry"
 topic_name: "การวัดและเรขาคณิต"
 answer: "17"
 ---
+
+# คำถาม
+
+30. กำหนดรูปสามเหลี่ยม $ABC$ ดังรูป จุด $M$ เป็นจุดกึ่งกลางด้าน $BC$ จุด $D$ และจุด $E$ เป็นจุดที่แบ่งด้าน $AC$ ออกเป็นสามส่วนเท่า ๆ กัน ส่วนของเส้นตรง $AM$ ตัดส่วนของเส้นตรง $BD$ และ $BE$ ที่จุด $F$ และ $G$ ตามลำดับ
+
+[![illustration](../images/TEDET_Math_2557_G9_30_crop_0.png)]
+
+ถ้า $AF : FG : GM$ มีอัตราส่วนอย่างต่ำเป็น $a : b : c$ จงหาค่าของ $a + 2b + 3c$
 
 # คำอธิบายและวิธีทำ
 

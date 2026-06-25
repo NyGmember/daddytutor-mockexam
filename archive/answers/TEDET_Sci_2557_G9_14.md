@@ -3,12 +3,22 @@ exam_name: "TEDET"
 subject: "วิทยาศาสตร์"
 level: "มัธยมต้น (G7-G9)"
 grade: "G9"
-year: 2557
-difficulty: 2
+year: "2557"
+difficulty: "2"
 topic_id: "basic_physics"
 topic_name: "ฟิสิกส์พื้นฐาน"
 answer: "1"
 ---
+
+# คำถาม
+
+14. แผนผังการต่ออุปกรณ์ไฟฟ้าต่อไปนี้
+
+[![illustration](../images/TEDET_Sci_2557_G9_14_crop_1.png)]
+
+ข้อใดแสดงอุปกรณ์แผนผังการทำงานที่ถูกต้องของวงจรนี้
+
+[![options](../images/TEDET_Sci_2557_G9_14_crop_0.png)]
 
 # คำอธิบายและวิธีทำ
 

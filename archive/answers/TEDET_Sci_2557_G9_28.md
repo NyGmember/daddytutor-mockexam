@@ -3,12 +3,26 @@ exam_name: "TEDET"
 subject: "วิทยาศาสตร์"
 level: "มัธยมต้น (G7-G9)"
 grade: "G9"
-year: 2557
-difficulty: 3
+year: "2557"
+difficulty: "3"
 topic_id: "basic_earth_astronomy_space"
 topic_name: "โลก ดาราศาสตร์ และอวกาศพื้นฐาน"
 answer: "3"
 ---
+
+# คำถาม
+
+28. จากภาพแสดงตำแหน่งของดวงอาทิตย์ โลก และดวงจันทร์
+
+[![illustration](../images/TEDET_Sci_2557_G9_28_crop_0.png)]
+
+ข้อใดเรียงลำดับตำแหน่งที่เกิดสุริยุปราคาและจันทรุปราคาได้ถูกต้อง
+
+① A, C
+② B, D
+③ C, A
+④ C, D
+⑤ D, B
 
 # คำอธิบายและวิธีทำ
 

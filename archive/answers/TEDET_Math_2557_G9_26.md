@@ -3,12 +3,21 @@ exam_name: "TEDET"
 subject: "คณิตศาสตร์"
 level: "มัธยมต้น (G7-G9)"
 grade: "G9"
-year: 2557
-difficulty: 3
+year: "2557"
+difficulty: "3"
 topic_id: "numbers_and_algebra"
 topic_name: "จำนวนและพีชคณิต"
 answer: "515"
 ---
+
+# คำถาม
+
+26. จำนวนเต็ม $a, b$ และ $c$ สอดคล้องกับสมการที่กำหนดให้ต่อไปนี้
+
+$$\text{(ก) } (x+1)(x+2)(x+3)(x+4) + 1 = (x^2 + ax + b)^2$$
+$$\text{(ข) } \sqrt{21 \times 22 \times 23 \times 24 + 1} = c$$
+
+จงหาค่าของ $a + b + c$
 
 # คำอธิบายและวิธีทำ
 

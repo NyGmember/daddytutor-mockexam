@@ -3,12 +3,20 @@ exam_name: "TEDET"
 subject: "คณิตศาสตร์"
 level: "มัธยมต้น (G7-G9)"
 grade: "G9"
-year: 2557
-difficulty: 3
+year: "2557"
+difficulty: "3"
 topic_id: "measurement_and_geometry"
 topic_name: "การวัดและเรขาคณิต"
 answer: "65"
 ---
+
+# คำถาม
+
+18. กำหนดให้จุด $I$ เป็นจุดศูนย์กลางวงกลมแนบในรูปสามเหลี่ยม $ABC$ ดังรูป
+
+[![illustration](../images/TEDET_Math_2557_G9_18_crop_0.png)]
+
+ถ้า $\angle ABC = 60^\circ$ และ $\angle ACB = 50^\circ$ จงหาว่า $\angle BID$ เท่ากับกี่องศา
 
 # คำอธิบายและวิธีทำ
 

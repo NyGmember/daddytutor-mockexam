@@ -3,12 +3,28 @@ exam_name: "TEDET"
 subject: "วิทยาศาสตร์"
 level: "มัธยมต้น (G7-G9)"
 grade: "G9"
-year: 2557
-difficulty: 3
+year: "2557"
+difficulty: "3"
 topic_id: "basic_earth_astronomy_space"
 topic_name: "โลก ดาราศาสตร์ และอวกาศพื้นฐาน"
 answer: "5"
 ---
+
+# คำถาม
+
+26. ภาพแสดงตำแหน่งของดวงอาทิตย์ โลก และดวงจันทร์ เมื่ออยู่ระนาบเดียวกัน
+
+[![illustration](../images/TEDET_Sci_2557_G9_26_crop_0.png)]
+
+ข้อใดคือรูปร่างของดวงจันทร์ในตำแหน่ง A เมื่อมองจากโลก
+
+[![options](../images/TEDET_Sci_2557_G9_26_crop_1.png)]
+
+① ①
+② ②
+③ ③
+④ ④
+⑤ ⑤
 
 # คำอธิบายและวิธีทำ
 

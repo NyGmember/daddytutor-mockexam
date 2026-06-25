@@ -3,12 +3,18 @@ exam_name: "TEDET"
 subject: "คณิตศาสตร์"
 level: "มัธยมต้น (G7-G9)"
 grade: "G8"
-year: 2557
-difficulty: 3
+year: "2557"
+difficulty: "3"
 topic_id: "numbers_and_algebra"
 topic_name: "จำนวนและพีชคณิต"
 answer: "800"
 ---
+
+# คำถาม
+
+15. ถ้า $x$ และ $y$ เป็นจำนวนจริงซึ่ง
+$$y = 2x + 1 \quad \text{และ} \quad 3x - 2y = -4$$
+จงหาค่าของ $(-2x^2y^3)^2 \div (xy^2)^3 \times 2xy^2$
 
 # คำอธิบายและวิธีทำ
 

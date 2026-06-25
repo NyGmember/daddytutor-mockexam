@@ -57,17 +57,28 @@ export async function POST(request) {
       // Parse questionText and answerText from bodyText
       let questionText = '';
       let answerText = '';
+      const hasQuestionHeader = bodyText.includes('# คำถาม');
       const explainIndex = bodyText.indexOf('# คำอธิบายและวิธีทำ');
-      if (explainIndex > -1) {
+      
+      if (hasQuestionHeader && explainIndex > -1) {
         questionText = bodyText.substring(0, explainIndex).trim();
         questionText = questionText.replace(/^#\s*คำถาม\s*\n+/, '').trim();
         answerText = bodyText.substring(explainIndex + '# คำอธิบายและวิธีทำ'.length).trim();
       } else {
-        answerText = bodyText;
-        // Fallback to legacy questions/ folder if needed
+        // Legacy format or missing question block in answer file
+        if (explainIndex > -1) {
+          answerText = bodyText.substring(explainIndex + '# คำอธิบายและวิธีทำ'.length).trim();
+        } else {
+          answerText = bodyText;
+        }
+        
+        // Fallback to legacy questions/ folder or archive/questions/ folder if needed
         const qPath = path.join(questionsDir, `${id}.md`);
+        const archiveQPath = path.join(gitRoot, 'archive', 'questions', `${id}.md`);
         if (fs.existsSync(qPath)) {
           questionText = fs.readFileSync(qPath, 'utf8');
+        } else if (fs.existsSync(archiveQPath)) {
+          questionText = fs.readFileSync(archiveQPath, 'utf8');
         }
       }
 

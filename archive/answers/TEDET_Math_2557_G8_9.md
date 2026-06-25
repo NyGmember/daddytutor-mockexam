@@ -3,12 +3,19 @@ exam_name: "TEDET"
 subject: "คณิตศาสตร์"
 level: "มัธยมต้น (G7-G9)"
 grade: "G8"
-year: 2557
-difficulty: 3
+year: "2557"
+difficulty: "3"
 topic_id: "measurement_and_geometry"
 topic_name: "การวัดและเรขาคณิต"
 answer: "18"
 ---
+
+# คำถาม
+
+9. ทรงหลายหน้ารูปหนึ่งมีจุดยอด $a$ จุด มีเส้นขอบ $b$ เส้น และมีรูปคลี่ดังรูป
+[![illustration](../images/TEDET_Math_2557_G8_9_crop_0.png)]
+
+จงหาค่าของ $a + b$
 
 # คำอธิบายและวิธีทำ
 

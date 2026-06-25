@@ -3,12 +3,28 @@ exam_name: "TEDET"
 subject: "วิทยาศาสตร์"
 level: "มัธยมต้น (G7-G9)"
 grade: "G9"
-year: 2557
-difficulty: 3
+year: "2557"
+difficulty: "3"
 topic_id: "basic_physics"
 topic_name: "ฟิสิกส์พื้นฐาน"
 answer: "3"
 ---
+
+# คำถาม
+
+24. วางเข็มทิศในตำแหน่ง A และ B รอบแท่งแม่เหล็กแท่งหนึ่ง ดังภาพ
+
+[![illustration](../images/TEDET_Sci_2557_G9_24_crop_0.png)]
+
+ข้อใดแสดงทิศทางของเข็มทิศในตำแหน่ง A และ B ได้ถูกต้อง
+
+[![options](../images/TEDET_Sci_2557_G9_24_crop_1.png)]
+
+① ①
+② ②
+③ ③
+④ ④
+⑤ ⑤
 
 # คำอธิบายและวิธีทำ
 

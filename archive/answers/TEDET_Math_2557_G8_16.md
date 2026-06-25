@@ -3,12 +3,24 @@ exam_name: "TEDET"
 subject: "คณิตศาสตร์"
 level: "มัยธมต้น (G7-G9)"
 grade: "G8"
-year: 2557
-difficulty: 4
+year: "2557"
+difficulty: "4"
 topic_id: "measurement_and_geometry"
 topic_name: "การวัดและเรขาคณิต"
 answer: "375"
 ---
+
+# คำถาม
+
+16. จากรูป กำหนดให้
+- จุด $E, F, G, H$ เป็นจุดกึ่งกลางด้านของรูปสี่เหลี่ยมจัตุรัส $ABCD$ ที่มีด้านยาว 40 หน่วย
+- $\overline{EG}$ และ $\overline{FH}$ ตัดกันที่จุด $P$
+- สร้างรูปครึ่งวงกลมสองรูปที่มี $\overline{AB}$ และ $\overline{FP}$ เป็นเส้นผ่านศูนย์กลาง
+
+![illustration](../images/TEDET_Math_2557_G8_16_crop_0.png)
+
+ถ้าบริเวณที่แรเงามีพื้นที่ $a + b\pi$ ตารางหน่วย โดยที่ $a$ และ $b$ เป็นจำนวนเต็ม
+จงหาค่าของ $a + b$
 
 # คำอธิบายและวิธีทำ
 

@@ -3,12 +3,28 @@ exam_name: "TEDET"
 subject: "วิทยาศาสตร์"
 level: "มัธยมต้น (G7-G9)"
 grade: "G9"
-year: 2557
-difficulty: 3
+year: "2557"
+difficulty: "3"
 topic_id: "basic_physics"
 topic_name: "ฟิสิกส์พื้นฐาน"
 answer: "5"
 ---
+
+# คำถาม
+
+25. จากภาพวางเข็มทิศระหว่างแท่งแม่เหล็กสองแท่ง
+
+[![illustration](../images/TEDET_Sci_2557_G9_25_crop_0.png)]
+
+ข้อใดแสดงทิศทางของขั้ว N และขั้ว S ของเข็มทิศได้ถูกต้อง
+
+[![options](../images/TEDET_Sci_2557_G9_25_crop_1.png)]
+
+① ①
+② ②
+③ ③
+④ ④
+⑤ ⑤
 
 # คำอธิบายและวิธีทำ
 

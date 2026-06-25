@@ -3,12 +3,26 @@ exam_name: "TEDET"
 subject: "วิทยาศาสตร์"
 level: "มัธยมต้น (G7-G9)"
 grade: "G7"
-year: 2557
-difficulty: 3
+year: "2557"
+difficulty: "3"
 topic_id: "basic_biology"
 topic_name: "ชีววิทยาพื้นฐาน"
 answer: "2"
 ---
+
+# คำถาม
+
+26. จากภาพแสดงปฏิกิริยาการสังเคราะห์ด้วยแสงที่เกิดขึ้นภายในเซลล์พืช
+
+[![illustration](../images/TEDET_Sci_2557_G7_26_crop_0.png)]
+
+ข้อใดคือส่วนประกอบที่มีความสำคัญในการผลิตกลูโคส
+
+① A  
+② B  
+③ C  
+④ D  
+⑤ E
 
 # คำอธิบายและวิธีทำ
 

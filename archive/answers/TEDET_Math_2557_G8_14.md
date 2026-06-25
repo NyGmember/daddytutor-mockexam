@@ -3,12 +3,18 @@ exam_name: "TEDET"
 subject: "คณิตศาสตร์"
 level: "มัธยมต้น (G7-G9)"
 grade: "G8"
-year: 2557
-difficulty: 3
+year: "2557"
+difficulty: "3"
 topic_id: "numbers_and_algebra"
 topic_name: "จำนวนและพีชคณิต"
 answer: "8"
 ---
+
+# คำถาม
+
+14. ถ้า $x = 1, y = -1$ เป็นคำตอบของ
+$$\frac{2ax+by}{3} = \frac{ax-by}{4} = \frac{3x-y}{2}$$
+จงหาค่าของ $6(a-b)$
 
 # คำอธิบายและวิธีทำ
 
