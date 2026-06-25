@@ -363,9 +363,6 @@ export default function ExamPage() {
         .cartoon-img {
           max-width: 100%;
           height: auto;
-          border: 3px solid #2D2D2D;
-          border-radius: 8px;
-          box-shadow: 4px 4px 0px #2D2D2D;
         }
         .cartoon-hr {
           border: none;
