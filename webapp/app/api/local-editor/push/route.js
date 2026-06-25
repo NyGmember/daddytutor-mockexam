@@ -32,19 +32,17 @@ export async function POST(request) {
     const imageFilesToStage = new Set();
 
     for (const id of selectedIds) {
-      const qPath = path.join(questionsDir, `${id}.md`);
       const aPath = path.join(answersDir, `${id}.md`);
 
-      if (!fs.existsSync(qPath) || !fs.existsSync(aPath)) {
+      if (!fs.existsSync(aPath)) {
         return NextResponse.json({ 
-          error: `Files for question ID ${id} not found on disk.` 
+          error: `Answer file for question ID ${id} not found on disk.` 
         }, { status: 404 });
       }
 
-      const questionText = fs.readFileSync(qPath, 'utf8');
       const answerContent = fs.readFileSync(aPath, 'utf8');
 
-      // Parse YAML frontmatter in answer
+      // Parse YAML frontmatter and body in answer
       const parts = answerContent.split('---');
       if (parts.length < 3) {
         return NextResponse.json({ 
@@ -53,7 +51,25 @@ export async function POST(request) {
       }
 
       const yamlText = parts[1];
-      const answerText = parts.slice(2).join('---').trim();
+      const bodyText = parts.slice(2).join('---').trim();
+
+      // Parse questionText and answerText from bodyText
+      let questionText = '';
+      let answerText = '';
+      const explainIndex = bodyText.indexOf('# คำอธิบายและวิธีทำ');
+      if (explainIndex > -1) {
+        questionText = bodyText.substring(0, explainIndex).trim();
+        questionText = questionText.replace(/^#\s*คำถาม\s*\n+/, '').trim();
+        answerText = bodyText.substring(explainIndex + '# คำอธิบายและวิธีทำ'.length).trim();
+      } else {
+        answerText = bodyText;
+        // Fallback to legacy questions/ folder if needed
+        const qPath = path.join(questionsDir, `${id}.md`);
+        if (fs.existsSync(qPath)) {
+          questionText = fs.readFileSync(qPath, 'utf8');
+        }
+      }
+
       const metadata = parseYaml(yamlText);
 
       // Extract image filenames from markdown

@@ -54,20 +54,32 @@ export async function POST(request) {
       answer: correctAnswer.toString()
     };
 
-    const fullAnswerContent = `---\n${stringifyYaml(frontmatter)}---\n\n${answerText}`;
+    // Format fullAnswerContent with both question and explanation
+    const fullAnswerContent = `---\n${stringifyYaml(frontmatter)}---\n\n# คำถาม\n\n${questionText}\n\n# คำอธิบายและวิธีทำ\n\n${answerText}`;
 
-    // 3. Write files to local workspace folders
-    const questionsDir = path.join(process.cwd(), '..', 'questions');
+    // 3. Write file to local workspace answers folder only
     const answersDir = path.join(process.cwd(), '..', 'answers');
-
-    if (!fs.existsSync(questionsDir)) fs.mkdirSync(questionsDir, { recursive: true });
     if (!fs.existsSync(answersDir)) fs.mkdirSync(answersDir, { recursive: true });
 
-    const questionPath = path.join(questionsDir, `${id}.md`);
     const answerPath = path.join(answersDir, `${id}.md`);
-
-    fs.writeFileSync(questionPath, questionText, 'utf8');
     fs.writeFileSync(answerPath, fullAnswerContent, 'utf8');
+
+    // Archive the question text immediately
+    const archiveQuestionsDir = path.join(process.cwd(), '..', 'archive', 'questions');
+    if (!fs.existsSync(archiveQuestionsDir)) fs.mkdirSync(archiveQuestionsDir, { recursive: true });
+    
+    const archiveQuestionPath = path.join(archiveQuestionsDir, `${id}.md`);
+    fs.writeFileSync(archiveQuestionPath, questionText, 'utf8');
+
+    // Clean up any legacy question file from the questions directory
+    const legacyQuestionPath = path.join(process.cwd(), '..', 'questions', `${id}.md`);
+    if (fs.existsSync(legacyQuestionPath)) {
+      try {
+        fs.unlinkSync(legacyQuestionPath);
+      } catch (err) {
+        // Ignore
+      }
+    }
 
     // 4. Save/Update inside local SQLite database using Prisma
     // A. Ensure Subject exists

@@ -422,33 +422,23 @@ def process_pending_jobs():
             
             # File outputs
             question_md_filename = f"{folder}_{question_no}.md"
-            question_md_path = os.path.join("questions", question_md_filename)
             answer_md_path = os.path.join("answers", question_md_filename)
             
-            # Skip if both already exist (resumability)
-            if os.path.exists(question_md_path) and os.path.exists(answer_md_path):
+            # Skip if already processed (resumability)
+            if os.path.exists(answer_md_path):
                 print(f"  Q{question_no} already processed. Skipping.")
                 continue
                 
             try:
                 # --- Step 2: OCR & Crop ---
-                # Check if question MD already exists (perhaps OCR succeeded but Solver failed on last run)
-                if os.path.exists(question_md_path):
-                    print(f"    Q{question_no} question text exists. Reading locally.")
-                    with open(question_md_path, "r", encoding="utf-8") as q_file:
-                        transcribed_text = q_file.read()
-                else:
-                    transcribed_text = run_ocr_and_crop(question_filepath, folder, question_no)
-                    with open(question_md_path, "w", encoding="utf-8") as q_file:
-                        q_file.write(transcribed_text)
-                    print(f"    Saved question markdown to {q_file.name}")
+                transcribed_text = run_ocr_and_crop(question_filepath, folder, question_no)
                 
                 # --- Step 3: Solve & Analyze ---
                 solve_result = run_professor_solver(
                     question_filepath, transcribed_text, folder, question_no, config, folder_metadata
                 )
                 
-                # Write answer markdown with YAML Frontmatter
+                # Write answer markdown with YAML Frontmatter, Question and Explanation
                 with open(answer_md_path, "w", encoding="utf-8") as a_file:
                     a_file.write("---\n")
                     a_file.write(f"exam_name: \"{folder_metadata['exam_name']}\"\n")
@@ -462,10 +452,14 @@ def process_pending_jobs():
                     a_file.write(f"answer: \"{solve_result.get('answer')}\"\n")
                     a_file.write("---\n\n")
                     
-                    a_file.write(f"# คำอธิบายและวิธีทำ\n")
+                    a_file.write("# คำถาม\n\n")
+                    a_file.write(transcribed_text)
+                    a_file.write("\n\n")
+                    
+                    a_file.write("# คำอธิบายและวิธีทำ\n\n")
                     a_file.write(solve_result.get("explanation", ""))
                     a_file.write("\n")
-                print(f"    Saved answer markdown to {a_file.name}")
+                print(f"    Saved answer markdown with question to {a_file.name}")
                 
             except Exception as err:
                 print(f"  Error processing Q{question_no} in folder {folder}: {err}")

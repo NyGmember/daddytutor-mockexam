@@ -29,11 +29,11 @@ export async function GET() {
       }
     }
 
-    // Get all existing questions in the questions/ folder
-    const questionsDir = path.join(gitRoot, 'questions');
+    // Get all existing questions in the answers/ folder (we read strictly from answers/ now)
+    const answersDir = path.join(gitRoot, 'answers');
     let diskQuestionIds = [];
-    if (fs.existsSync(questionsDir)) {
-      diskQuestionIds = fs.readdirSync(questionsDir)
+    if (fs.existsSync(answersDir)) {
+      diskQuestionIds = fs.readdirSync(answersDir)
         .filter(f => f.endsWith('.md'))
         .map(f => f.replace('.md', ''))
         .sort();
