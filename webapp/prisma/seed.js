@@ -96,9 +96,12 @@ function ensureArray(val, key) {
 async function main() {
   const prisma = new PrismaClient();
   try {
-    const configPath = path.join(__dirname, '..', '..', 'configuration.md');
+    let configPath = path.join(__dirname, '..', '..', 'configuration.md');
     if (!fs.existsSync(configPath)) {
-      throw new Error(`configuration.md not found at ${configPath}`);
+      configPath = path.join(__dirname, '..', 'configuration.md');
+    }
+    if (!fs.existsSync(configPath)) {
+      throw new Error('configuration.md not found (tried root and /app context)');
     }
     const fileContent = fs.readFileSync(configPath, 'utf8');
     const match = fileContent.match(/^---\s*\n([\s\S]*?)\n---\s*\n/);
