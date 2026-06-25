@@ -3,6 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import { execSync } from 'child_process';
 import { parseYaml } from '@/lib/yaml';
+import prisma from '@/lib/prisma';
 
 export async function POST(request) {
   // Security check: Only allow in development mode
@@ -173,6 +174,64 @@ export async function POST(request) {
       if (fs.existsSync(aSrc)) {
         fs.renameSync(aSrc, aDest);
       }
+    }
+
+    // 4.6. Upsert the published questions into the local SQLite database
+    for (const q of questionsList) {
+      const subjectName = q.subjectId === 'mathematics' ? 'คณิตศาสตร์' : 'วิทยาศาสตร์';
+      
+      // A. Ensure Subject exists
+      await prisma.subject.upsert({
+        where: { id: q.subjectId },
+        update: { nameTh: subjectName },
+        create: { id: q.subjectId, nameTh: subjectName }
+      });
+
+      // B. Ensure Level exists
+      await prisma.level.upsert({
+        where: { id: q.levelId },
+        update: {},
+        create: {
+          id: q.levelId,
+          nameTh: q.levelId.includes('primary') ? 'ประถมศึกษา' : q.levelId.includes('lower') ? 'มัธยมศึกษาตอนต้น' : 'มัธยมศึกษาตอนปลาย',
+          subjectId: q.subjectId
+        }
+      });
+
+      // C. Ensure Topic exists
+      await prisma.topic.upsert({
+        where: { id: q.topicId },
+        update: { nameTh: q.topicNameTh, levelId: q.levelId },
+        create: { id: q.topicId, nameTh: q.topicNameTh, levelId: q.levelId }
+      });
+
+      // D. Save Question details
+      await prisma.question.upsert({
+        where: { id: q.id },
+        update: {
+          subjectId: q.subjectId,
+          levelId: q.levelId,
+          topicId: q.topicId,
+          year: q.year,
+          difficulty: q.difficulty,
+          questionText: q.questionText,
+          answerText: q.answerText,
+          correctAnswer: q.correctAnswer,
+          images: JSON.stringify(q.images || [])
+        },
+        create: {
+          id: q.id,
+          subjectId: q.subjectId,
+          levelId: q.levelId,
+          topicId: q.topicId,
+          year: q.year,
+          difficulty: q.difficulty,
+          questionText: q.questionText,
+          answerText: q.answerText,
+          correctAnswer: q.correctAnswer,
+          images: JSON.stringify(q.images || [])
+        }
+      });
     }
 
     // 5. Git Commit and Push

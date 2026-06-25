@@ -14,29 +14,46 @@ export async function POST(request) {
       return NextResponse.json({ success: false, error: 'รหัสผ่านไม่ถูกต้อง' }, { status: 401 });
     }
 
-    // 2. Check configuration
-    const repoRawUrl = process.env.GITHUB_REPO_RAW_URL;
-    if (!repoRawUrl) {
+    // 2. Check configuration (make optional if local version.json exists for offline dev mode)
+    const repoRawUrl = process.env.GITHUB_REPO_RAW_URL || '';
+    const baseUrl = repoRawUrl ? (repoRawUrl.endsWith('/') ? repoRawUrl : `${repoRawUrl}/`) : '';
+
+    const localVersionPath = path.join(process.cwd(), '..', 'version.json');
+    if (!repoRawUrl && !fs.existsSync(localVersionPath)) {
       return NextResponse.json({ 
         success: false, 
-        error: 'กรุณาตั้งค่า GITHUB_REPO_RAW_URL ในสภาพแวดล้อม (environment) ของระบบ' 
+        error: 'กรุณาตั้งค่า GITHUB_REPO_RAW_URL ในสภาพแวดล้อม (environment) ของระบบ หรือตรวจสอบว่าไฟล์ version.json ในโฟลเดอร์หลักมีอยู่จริง' 
       }, { status: 500 });
     }
 
-    // Ensure raw URL has trailing slash
-    const baseUrl = repoRawUrl.endsWith('/') ? repoRawUrl : `${repoRawUrl}/`;
-
-    // 3. Fetch version.json from GitHub
+    // 3. Load version.json (try local disk first for offline/dev convenience, fallback to GitHub)
     let versionCatalog;
-    try {
-      const res = await fetch(`${baseUrl}version.json`, { cache: 'no-store' });
-      if (!res.ok) throw new Error(`HTTP status ${res.status}`);
-      versionCatalog = await res.json();
-    } catch (err) {
-      console.error('Error fetching version.json:', err);
+    if (fs.existsSync(localVersionPath)) {
+      try {
+        versionCatalog = JSON.parse(fs.readFileSync(localVersionPath, 'utf8'));
+      } catch (err) {
+        console.warn('Failed parsing local version.json:', err);
+      }
+    }
+
+    if (!versionCatalog && baseUrl) {
+      try {
+        const res = await fetch(`${baseUrl}version.json`, { cache: 'no-store' });
+        if (!res.ok) throw new Error(`HTTP status ${res.status}`);
+        versionCatalog = await res.json();
+      } catch (err) {
+        console.error('Error fetching version.json:', err);
+        return NextResponse.json({ 
+          success: false, 
+          error: `ไม่สามารถโหลดไฟล์ version.json ได้ (${err.message})` 
+        }, { status: 500 });
+      }
+    }
+
+    if (!versionCatalog) {
       return NextResponse.json({ 
         success: false, 
-        error: `ไม่สามารถโหลดไฟล์ version.json จาก GitHub ได้ (${err.message})` 
+        error: 'ไม่สามารถโหลดไฟล์ version.json ได้ (กรุณาตั้งค่า GITHUB_REPO_RAW_URL หรือตรวจสอบไฟล์ version.json บนพื้นที่เก็บข้อมูล)' 
       }, { status: 500 });
     }
 
@@ -77,15 +94,33 @@ export async function POST(request) {
       console.log(`Syncing version ${version} from ${patchUrl}...`);
       
       let patchData;
-      try {
-        const patchRes = await fetch(patchUrl, { cache: 'no-store' });
-        if (!patchRes.ok) throw new Error(`HTTP status ${patchRes.status}`);
-        patchData = await patchRes.json();
-      } catch (err) {
-        console.error(`Error loading patch ${version}:`, err);
+      const localPatchPath = path.join(process.cwd(), '..', 'releases', `patch_${version}.json`);
+      if (fs.existsSync(localPatchPath)) {
+        try {
+          patchData = JSON.parse(fs.readFileSync(localPatchPath, 'utf8'));
+        } catch (err) {
+          console.warn(`Failed parsing local patch_${version}.json:`, err);
+        }
+      }
+
+      if (!patchData && baseUrl) {
+        try {
+          const patchRes = await fetch(patchUrl, { cache: 'no-store' });
+          if (!patchRes.ok) throw new Error(`HTTP status ${patchRes.status}`);
+          patchData = await patchRes.json();
+        } catch (err) {
+          console.error(`Error loading patch ${version}:`, err);
+          return NextResponse.json({ 
+            success: false, 
+            error: `เกิดข้อผิดพลาดขณะโหลดไฟล์แพตช์เวอร์ชัน ${version} (${err.message})` 
+          }, { status: 500 });
+        }
+      }
+
+      if (!patchData) {
         return NextResponse.json({ 
           success: false, 
-          error: `เกิดข้อผิดพลาดขณะโหลดไฟล์แพตช์เวอร์ชัน ${version} (${err.message})` 
+          error: `ไม่สามารถโหลดไฟล์แพตช์เวอร์ชัน ${version} ได้` 
         }, { status: 500 });
       }
 
@@ -148,26 +183,43 @@ export async function POST(request) {
           }
         });
 
-        // E. Download associated images
+        // E. Download or copy associated images
         const imageFiles = q.images || [];
         for (const imgFilename of imageFiles) {
-          const imgUrl = `${baseUrl}images/${imgFilename}`;
           const localImgPath = path.join(publicImagesDir, imgFilename);
+          const workspaceImgPath = path.join(process.cwd(), '..', 'images', imgFilename);
 
-          // We download the image file if it doesn't already exist locally
+          // If the image doesn't exist in Next.js public directory
           if (!fs.existsSync(localImgPath)) {
-            try {
-              const imgRes = await fetch(imgUrl);
-              if (imgRes.ok) {
-                const arrayBuffer = await imgRes.arrayBuffer();
-                const buffer = Buffer.from(arrayBuffer);
-                fs.writeFileSync(localImgPath, buffer);
-                console.log(`Successfully downloaded image: ${imgFilename}`);
-              } else {
-                console.warn(`Failed to download image ${imgFilename}: HTTP status ${imgRes.status}`);
+            // First try to copy locally from the workspace images folder
+            if (fs.existsSync(workspaceImgPath)) {
+              try {
+                fs.copyFileSync(workspaceImgPath, localImgPath);
+                console.log(`Successfully copied image locally: ${imgFilename}`);
+                continue;
+              } catch (err) {
+                console.error(`Error copying image locally ${imgFilename}:`, err);
               }
-            } catch (err) {
-              console.error(`Error downloading image ${imgFilename}:`, err);
+            }
+
+            // Fallback to downloading from GitHub
+            if (baseUrl) {
+              try {
+                const imgUrl = `${baseUrl}images/${imgFilename}`;
+                const imgRes = await fetch(imgUrl);
+                if (imgRes.ok) {
+                  const arrayBuffer = await imgRes.arrayBuffer();
+                  const buffer = Buffer.from(arrayBuffer);
+                  fs.writeFileSync(localImgPath, buffer);
+                  console.log(`Successfully downloaded image: ${imgFilename}`);
+                } else {
+                  console.warn(`Failed to download image ${imgFilename}: HTTP status ${imgRes.status}`);
+                }
+              } catch (err) {
+                console.error(`Error downloading image ${imgFilename}:`, err);
+              }
+            } else {
+              console.warn(`Image ${imgFilename} not found locally, and GITHUB_REPO_RAW_URL is not set.`);
             }
           }
         }
