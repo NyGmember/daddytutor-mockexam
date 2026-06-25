@@ -190,7 +190,7 @@ export default function ExamPage() {
           </button>
 
           <span className="font-bold text-base md:text-lg">
-            ข้อที่ {currentIndex + 1} / {questions.length} (ปี {currentQuestion.year})
+            ข้อที่ {currentIndex + 1} / {questions.length}
           </span>
 
           <button
