@@ -90,8 +90,30 @@ export async function GET(request) {
 
     const countsMap = new Map(questionCounts.map(item => [item.topicId, item._count.id]));
 
-    // 3. Map topics with counts
-    const topicsWithCount = configTopics.map(topic => ({
+    // 2. Fetch all topics from database for this level
+    const dbTopics = await prisma.topic.findMany({
+      where: {
+        levelId: levelId
+      }
+    });
+
+    // 3. Merge configuration topics and database topics
+    const mergedTopics = [...configTopics];
+    const existingIds = new Set(configTopics.map(t => t.id));
+
+    for (const dbT of dbTopics) {
+      if (!existingIds.has(dbT.id)) {
+        mergedTopics.push({
+          id: dbT.id,
+          name_th: dbT.nameTh,
+          description: dbT.nameTh
+        });
+        existingIds.add(dbT.id);
+      }
+    }
+
+    // 4. Map topics with counts
+    const topicsWithCount = mergedTopics.map(topic => ({
       id: topic.id,
       nameTh: topic.name_th || topic.nameTh || '',
       count: countsMap.get(topic.id) || 0
