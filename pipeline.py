@@ -38,15 +38,16 @@ else:
 # ==========================================
 # 2. Helper to call Gemini with Retry
 # ==========================================
-def call_gemini_with_retry(model, contents, config, max_retries=6, initial_delay=5):
+def call_gemini_with_retry(model, contents, config, max_retries=20, initial_delay=5):
     """
-    Call Gemini API with retry and exponential backoff for 429 Rate Limits.
+    Call Gemini API with retry and exponential backoff for 429 Rate Limits and transient server errors (500, 503, connection dropouts).
     """
+    current_model = model
     delay = initial_delay
     for attempt in range(max_retries):
         try:
             response = client.models.generate_content(
-                model=model,
+                model=current_model,
                 contents=contents,
                 config=config
             )
@@ -55,14 +56,19 @@ def call_gemini_with_retry(model, contents, config, max_retries=6, initial_delay
             return response
         except Exception as e:
             err_str = str(e)
-            if "429" in err_str or "RESOURCE_EXHAUSTED" in err_str:
-                print(f"      [429 Rate Limit] Retrying in {delay}s (attempt {attempt + 1}/{max_retries})...")
+            
+            is_transient = any(msg in err_str.upper() for msg in [
+                "429", "RESOURCE_EXHAUSTED", "503", "UNAVAILABLE", "500", "INTERNAL", 
+                "CONNECTION", "TIMEOUT", "GETADDRINFO", "SOCKET", "HTTP", "NETWORK", "HOST"
+            ])
+            if is_transient:
+                print(f"      [Transient Error/Rate Limit] Retrying in {delay}s (attempt {attempt + 1}/{max_retries}) using '{current_model}'... Error: {err_str[:150]}")
                 time.sleep(delay)
-                delay *= 2  # Exponential backoff
+                delay = min(delay * 2, 60)  # Exponential backoff capped at 60s
             else:
-                # If not a rate limit error, raise immediately
+                # If not a transient error, raise immediately
                 raise e
-    raise Exception("Max retries exceeded for Gemini API call due to rate limits.")
+    raise Exception(f"Max retries exceeded for Gemini API call using {current_model} due to rate limits or transient errors.")
 
 # ==========================================
 # 3. Configuration Parser & Types
@@ -79,8 +85,8 @@ class SolverResponse(BaseModel):
     level: str = Field(description="Must be exactly the level string from configuration.md, e.g. 'ประถม (G1-G6)', 'มัธยมต้น (G7-G9)', or 'มัธยมปลาย (G10-G12)'")
     difficulty: int = Field(description="Difficulty score from 1 (easy) to 5 (very hard) relative to the grade level's scope")
     subject: str = Field(description="Classified subject name based on rules (e.g. 'คณิตศาสตร์', 'วิทยาศาสตร์พื้นฐาน', 'ฟิสิกส์', 'เคมี', 'ชีวะ', 'โลกและอวกาศ')")
-    topic_id: str = Field(description="The exact topic ID selected from the configuration rules")
-    topic_name: str = Field(description="The exact Thai name of the topic matching topic_id")
+    topic_id: str = Field(description="The exact topic ID selected from the configuration rules, or a newly suggested topic ID in lowercase snake_case if none of the allowed topics fit.")
+    topic_name: str = Field(description="The exact Thai name of the topic matching topic_id, or a newly suggested concise Thai topic name.")
     explanation: str = Field(description="Detailed explanation of the solution. Math shows step-by-step; Science explains thought process and reasons.")
     answer: str = Field(description="The final concise answer.")
 
@@ -201,17 +207,17 @@ def run_ocr_and_crop(image_path, folder_name, question_no):
     Analyze the provided question image.
     Your tasks are:
     1. Transcribe the entire text, math symbols, and formulas. Use Markdown formatting.
-       - Use LaTeX for mathematical notation (e.g. $x^2 + y = 0$ inline, or $$...$$ for block display).
-       - Ensure LaTeX syntax is clean and correct.
-       - If there are figures/drawings/geometry diagrams/charts that cannot be represented as text, replace them with a placeholder like [FIGURE_0], [FIGURE_1] at their exact location in the text.
+         - Use LaTeX for mathematical notation (e.g. $x^2 + y = 0$ inline, or $$...$$ for block display).
+         - Ensure LaTeX syntax is clean and correct.
+         - If there are figures/drawings/geometry diagrams/charts that cannot be represented as text, replace them with a placeholder like [FIGURE_0], [FIGURE_1] at their exact location in the text.
     2. Identify the bounding boxes of any figures, drawings, charts, or illustrations in the image.
-       - Bounding boxes must be [ymin, xmin, ymax, xmax] on a 0 to 1000 scale relative to the image size.
-       - Do not include text equations or formula blocks as figures. Only actual diagrams/drawings.
+         - Bounding boxes must be [ymin, xmin, ymax, xmax] on a 0 to 1000 scale relative to the image size.
+         - Do not include text equations or formula blocks as figures. Only actual diagrams/drawings.
     """
     
-    # We use gemini-flash-latest for both OCR and solving to stay on the free tier quota
+    # We use gemini-flash-lite-latest for both OCR and solving to stay on the free tier quota and avoid 503 overload errors
     response = call_gemini_with_retry(
-        model="gemini-flash-latest",
+        model="gemini-flash-lite-latest",
         contents=[img, ocr_prompt],
         config=types.GenerateContentConfig(
             response_mime_type="application/json",
@@ -300,22 +306,24 @@ def run_professor_solver(image_path, transcribed_text, folder_name, question_no,
     Follow these instructions carefully:
     1. Determine the 'difficulty' level from 1 to 5 (1 = easiest, 5 = hardest) based on the target grade level knowledge.
     2. Classify the 'subject':
-       - If the exam is Math, 'subject' MUST be 'คณิตศาสตร์'
-       - If the exam is Sci:
-         - If grade is G1-G6, 'subject' MUST be 'วิทยาศาสตร์พื้นฐาน'
-         - If grade is G7-G12, analyze the question context and categorize it into exactly one of: 'วิทยาศาสตร์ทั่วไป', 'ฟิสิกส์', 'เคมี', 'ชีวะ', or 'โลกและอวกาศ'.
+         - If the exam is Math, 'subject' MUST be 'คณิตศาสตร์'
+         - If the exam is Sci:
+             - If grade is G1-G6, 'subject' MUST be 'วิทยาศาสตร์พื้นฐาน'
+             - If grade is G7-G12, analyze the question context and categorize it into exactly one of: 'วิทยาศาสตร์ทั่วไป', 'ฟิสิกส์', 'เคมี', 'ชีวะ', or 'โลกและอวกาศ'.
     3. Match and select the exact 'topic_id' and 'topic_name' from the allowed topics in the configuration listing above. Ensure topic_id matches the selected subject category.
+         - If none of the allowed topics fit the question, you may suggest a new, appropriate topic. In this case, specify a new 'topic_id' in lowercase snake_case and a new 'topic_name' in concise Thai.
     4. Write a detailed solution under 'explanation':
-       - If the subject is Mathematics, show the step-by-step mathematical calculations and reasoning using LaTeX.
-       - If the subject is Science, explain the core concepts, reasoning, and thinking process behind the answer using Markdown and LaTeX where appropriate.
-       - Adopt a university lecturer tone: precise, educational, and thorough, but matching the knowledge level of {grade_str}.
+         - If the subject is Mathematics, show the step-by-step mathematical calculations and reasoning using LaTeX.
+         - If the subject is Science, explain the core concepts, reasoning, and thinking process behind the answer using Markdown and LaTeX where appropriate.
+         - Ensure the explanation, steps, and terminology are clear and suited to a Middle School student ({grade_str}). Avoid using advanced concepts or mathematics that are only taught in higher grades (such as upper secondary or university level), unless explaining them in very simple, intuitive terms.
+         - Adopt a university lecturer tone: precise, educational, and thorough, but matching the knowledge level of {grade_str}.
     5. Provide the final concise answer under 'answer' (e.g. '15', 'ข.', '250', etc.)
     """
     
-    # We use gemini-flash-latest as the solver because the free tier API key has stable quota limits.
-    # gemini-flash-latest is highly intelligent and capable of solving G7-G12 math/science questions.
+    # We use gemini-flash-lite-latest as the solver because the free tier API key has stable quota limits.
+    # gemini-flash-lite-latest is highly intelligent and capable of solving G7-G12 math/science questions.
     response = call_gemini_with_retry(
-        model="gemini-flash-latest",
+        model="gemini-flash-lite-latest",
         contents=[img, solver_prompt],
         config=types.GenerateContentConfig(
             response_mime_type="application/json",
@@ -345,8 +353,8 @@ def run_professor_solver(image_path, transcribed_text, folder_name, question_no,
 # ==========================================
 def parse_folder_name(folder_name):
     """
-    Parse folder name like '{ชื่อการสอบ}_{วิชา}_{ปี พ.ศ.}_{ระดับชั้น}'
-    e.g. 'TEDET_Math_2557_G7' -> {exam_name: TEDET, subject_code: Math, year: 2557, grade: G7}
+    Parse folder name like '{ชื่อการสอบ}_{วิชา}_{ปี พ.ศ.}_{ระดับชั้น}' (e.g., 'TEDET_Math_2557_G7')
+    or '{ชื่อการสอบ}{ปี พ.ศ.}_{วิชา}_{ระดับชั้น}' (e.g., 'TEDET2558_Math_G7')
     """
     parts = folder_name.split("_")
     if len(parts) >= 4:
@@ -355,6 +363,22 @@ def parse_folder_name(folder_name):
             "subject_code": parts[1],
             "year": int(parts[2]) if parts[2].isdigit() else parts[2],
             "grade": parts[3]
+        }
+    elif len(parts) == 3:
+        # e.g., 'TEDET2558_Math_G7'
+        # Split first part into alphabetic characters and digits
+        match = re.match(r"^([a-zA-Z]+)(\d+)$", parts[0])
+        if match:
+            exam_name = match.group(1)
+            year = int(match.group(2))
+        else:
+            exam_name = parts[0]
+            year = "unknown"
+        return {
+            "exam_name": exam_name,
+            "subject_code": parts[1],
+            "year": year,
+            "grade": parts[2]
         }
     raise ValueError(f"Folder name '{folder_name}' does not match expected format")
 
@@ -460,6 +484,8 @@ def process_pending_jobs():
                     a_file.write(solve_result.get("explanation", ""))
                     a_file.write("\n")
                 print(f"    Saved answer markdown with question to {a_file.name}")
+                # Sleep between questions to avoid hitting rate limits (RPM)
+                time.sleep(5)
                 
             except Exception as err:
                 print(f"  Error processing Q{question_no} in folder {folder}: {err}")
