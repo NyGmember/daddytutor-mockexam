@@ -100,18 +100,29 @@ export async function POST(request) {
       let subjectId = 'mathematics';
       if (subject === 'วิทยาศาสตร์' || subject.toLowerCase() === 'science') {
         subjectId = 'science';
+      } else if (subject === 'ภาษาไทย' || subject.toLowerCase() === 'thai') {
+        subjectId = 'thai';
+      } else if (subject === 'ภาษาอังกฤษ' || subject.toLowerCase() === 'english') {
+        subjectId = 'english';
       }
 
+      const levelPrefix = subjectId === 'mathematics' ? 'math_' : 
+                          subjectId === 'science' ? 'sci_' : 
+                          subjectId === 'thai' ? 'thai_' : 'english_';
+
       let levelId = '';
-      if (subjectId === 'mathematics') {
-        if (levelStr.includes('ประถม')) levelId = 'math_primary';
-        else if (levelStr.includes('มัธยมปลาย') || levelStr.includes('G10')) levelId = 'math_upper_secondary';
-        else levelId = 'math_lower_secondary';
-      } else {
-        if (levelStr.includes('ประถม')) levelId = 'sci_primary';
-        else if (levelStr.includes('มัยธมปลาย') || levelStr.includes('G10')) levelId = 'sci_upper_secondary';
-        else levelId = 'sci_lower_secondary';
-      }
+      if (levelStr.includes('ประถม')) levelId = levelPrefix + 'primary';
+      else if (levelStr.includes('มัธยมปลาย') || levelStr.includes('มัยธมปลาย') || levelStr.includes('G10')) levelId = levelPrefix + 'upper_secondary';
+      else levelId = levelPrefix + 'lower_secondary';
+
+      const examSet = metadata.exam_name || (() => {
+        if (!id) return 'TEDET';
+        const upper = id.toUpperCase();
+        if (upper.startsWith('TEDET')) return 'TEDET';
+        if (upper.startsWith('ONET') || upper.startsWith('O_NET') || upper.startsWith('O-NET')) return 'O-NET';
+        const match = id.match(/^([A-Za-z]+)/);
+        return match ? match[1].toUpperCase() : 'TEDET';
+      })();
 
       questionsList.push({
         id,
@@ -124,7 +135,8 @@ export async function POST(request) {
         questionText,
         answerText, // CLEAN explanation body for DB storage (stripped of frontmatter)
         correctAnswer: (metadata.answer || '').toString(),
-        images
+        images,
+        examSet
       });
     }
 

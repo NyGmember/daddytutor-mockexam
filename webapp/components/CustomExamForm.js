@@ -2,35 +2,38 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Star, BookOpen, Layers, Settings, HelpCircle, Loader2 } from 'lucide-react';
+import { BookOpen, Layers, Settings, HelpCircle, Loader2, ListFilter, Clipboard } from 'lucide-react';
 
 export default function CustomExamForm({ subjects }) {
   const router = useRouter();
-  
-  // Selection states
-  const [selectedSubjectId, setSelectedSubjectId] = useState(subjects[0]?.id || '');
+
+  // Tab mode state: 'topics' or 'sets'
+  const [activeTab, setActiveTab] = useState('topics');
+
+  // ==========================================
+  // TOPIC-BASED MODE STATES & LOGIC
+  // ==========================================
+  const [selectedSubjectId, setSelectedSubjectId] = useState('mathematics');
   const [selectedLevelId, setSelectedLevelId] = useState('');
-  
-  // Loaded state
   const [availableTopics, setAvailableTopics] = useState([]);
   const [selectedTopicIds, setSelectedTopicIds] = useState([]);
-  const [selectedDifficulties, setSelectedDifficulties] = useState([1, 2, 3]); // default selected
   const [questionCount, setQuestionCount] = useState(10);
-  
+
   // UI States
   const [loadingTopics, setLoadingTopics] = useState(false);
   const [generatingExam, setGeneratingExam] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [warningMsg, setWarningMsg] = useState('');
-  
+
   // Get levels for selected subject
   const currentSubject = subjects.find(s => s.id === selectedSubjectId);
   const availableLevels = currentSubject?.levels || [];
 
-  // Set default level when subject changes
+  // Set default level when subject changes (default to lower_secondary / มัธยมต้น)
   useEffect(() => {
     if (availableLevels.length > 0) {
-      setSelectedLevelId(availableLevels[0].id);
+      const lowerSecondary = availableLevels.find(l => l.id.includes('lower_secondary'));
+      setSelectedLevelId(lowerSecondary ? lowerSecondary.id : availableLevels[0].id);
     } else {
       setSelectedLevelId('');
     }
@@ -70,30 +73,68 @@ export default function CustomExamForm({ subjects }) {
 
   // Toggle topic selection
   const handleToggleTopic = (topicId) => {
-    setSelectedTopicIds(prev => 
-      prev.includes(topicId) 
-        ? prev.filter(id => id !== topicId) 
+    setSelectedTopicIds(prev =>
+      prev.includes(topicId)
+        ? prev.filter(id => id !== topicId)
         : [...prev, topicId]
     );
   };
 
-  // Toggle difficulty selection
-  const handleToggleDifficulty = (diff) => {
-    setSelectedDifficulties(prev => 
-      prev.includes(diff) 
-        ? prev.filter(d => d !== diff) 
-        : [...prev, diff]
-    );
+  // Group Science Topics helper
+  const getGroupedScienceTopics = (topics) => {
+    const groups = {
+      basic: {
+        name: 'พื้นฐาน',
+        ids: ['basic_biology', 'basic_chemistry', 'basic_physics', 'basic_earth_astronomy_space', 'scientific_method', 'general_knowledge', 'economics_principles', 'numbers_and_algebra'],
+        list: []
+      },
+      biology: {
+        name: 'ชีววิทยา',
+        ids: ['cell_processes', 'plant_physiology', 'animal_human_physiology', 'biodiversity', 'genetics_evolution'],
+        list: []
+      },
+      chemistry: {
+        name: 'เคมี',
+        ids: ['chemical_bonding_gases', 'acids_bases_electrochemistry', 'atomic_structure_periodic_table', 'organic_chemistry_polymers', 'stoichiometry_equilibrium'],
+        list: []
+      },
+      physics: {
+        name: 'ฟิสิกส์',
+        ids: ['electricity_magnetism', 'mechanics', 'waves_light_sound', 'matter_and_heat', 'modern_and_nuclear_physics'],
+        list: []
+      },
+      earthSpace: {
+        name: 'โลก ดาราศาสตร์และอวกาศ',
+        ids: ['solar_system_space_exploration', 'astronomy_cosmology', 'georesources_maps', 'geology_earth_structure', 'atmosphere_climate', 'earth_and_space'],
+        list: []
+      }
+    };
+
+    topics.forEach(t => {
+      let placed = false;
+      for (const key in groups) {
+        if (groups[key].ids.includes(t.id)) {
+          groups[key].list.push(t);
+          placed = true;
+          break;
+        }
+      }
+      if (!placed) {
+        groups.basic.list.push(t);
+      }
+    });
+
+    return Object.values(groups).filter(g => g.list.length > 0);
   };
 
-  // Generate exam and navigate
-  const handleStartExam = async (e) => {
+  // Topic-based Exam generation submit
+  const handleStartExamTopics = async (e) => {
     e.preventDefault();
-    if (selectedDifficulties.length === 0) {
-      setErrorMsg('กรุณาเลือกอย่างน้อยหนึ่งระดับความยาก (ดาว)');
+    if (selectedTopicIds.length === 0) {
+      setErrorMsg('กรุณาเลือกอย่างน้อยหนึ่งหัวข้อ');
       return;
     }
-    
+
     setGeneratingExam(true);
     setErrorMsg('');
     setWarningMsg('');
@@ -103,10 +144,10 @@ export default function CustomExamForm({ subjects }) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          mode: 'topic',
           subjectId: selectedSubjectId,
           levelId: selectedLevelId,
           topicIds: selectedTopicIds,
-          difficulties: selectedDifficulties,
           count: questionCount
         })
       });
@@ -118,11 +159,9 @@ export default function CustomExamForm({ subjects }) {
         return;
       }
 
-      // Save question set to sessionStorage
       sessionStorage.setItem('current_exam', JSON.stringify(data.questions));
-      
+
       if (data.warning) {
-        // If warning exists (e.g. fewer questions than requested), alert the user and delay redirect slightly
         setWarningMsg(data.warning);
         setTimeout(() => {
           router.push('/exam');
@@ -137,171 +176,543 @@ export default function CustomExamForm({ subjects }) {
     }
   };
 
+
+  // ==========================================
+  // EXAM SETS PRACTICE MODE STATES & LOGIC
+  // ==========================================
+  const [metaExamSets, setMetaExamSets] = useState(['TEDET', 'O-NET']);
+  const [metaYears, setMetaYears] = useState([]);
+  const [loadingMeta, setLoadingMeta] = useState(false);
+
+  // Filters for Exam Sets Mode
+  const [setFilterExamSet, setSetFilterExamSet] = useState('ทั้งหมด');
+  const [setFilterSubject, setSetFilterSubject] = useState('ทั้งหมด'); // 'ทั้งหมด', 'mathematics', 'science', 'thai', 'english'
+  const [setFilterLevel, setSetFilterLevel] = useState('มัธยมต้น'); // 'ประถม', 'มัธยมต้น', 'มัธยมปลาย'
+  const [setFilterYear, setSetFilterYear] = useState('ทั้งหมด');
+  const [setFilterCount, setSetFilterCount] = useState('ทั้งหมด'); // 10, 20, 30, 50, 'ทั้งหมด'
+  const [setMatchCount, setSetMatchCount] = useState(0);
+  const [loadingMatchCount, setLoadingMatchCount] = useState(false);
+
+  // Load sets & years metadata on mount
+  useEffect(() => {
+    async function loadMeta() {
+      setLoadingMeta(true);
+      try {
+        const res = await fetch('/api/exam/sets-meta');
+        if (res.ok) {
+          const data = await res.json();
+          if (data.success) {
+            if (data.examSets && data.examSets.length > 0) setMetaExamSets(data.examSets);
+            if (data.years) setMetaYears(data.years);
+          }
+        }
+      } catch (err) {
+        console.error('Error loading sets metadata:', err);
+      } finally {
+        setLoadingMeta(false);
+      }
+    }
+    loadMeta();
+  }, []);
+
+  // Update matching questions count when filters change in Sets Mode
+  useEffect(() => {
+    if (activeTab !== 'sets') return;
+
+    async function checkCount() {
+      setLoadingMatchCount(true);
+      try {
+        const res = await fetch('/api/exam/check-count', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            examSet: setFilterExamSet,
+            subjectId: setFilterSubject,
+            level: setFilterLevel,
+            year: setFilterYear
+          })
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.success) {
+            setSetMatchCount(data.count);
+          }
+        }
+      } catch (err) {
+        console.error('Error fetching matching count:', err);
+      } finally {
+        setLoadingMatchCount(false);
+      }
+    }
+
+    const timer = setTimeout(checkCount, 250); // slight debounce
+    return () => clearTimeout(timer);
+  }, [activeTab, setFilterExamSet, setFilterSubject, setFilterLevel, setFilterYear]);
+
+  // Sets Mode submit
+  const handleStartExamSets = async (e) => {
+    e.preventDefault();
+    if (setMatchCount === 0) {
+      setErrorMsg('ไม่พบข้อสอบที่ตรงตามเงื่อนไขเพื่อสร้างแบบทดสอบ');
+      return;
+    }
+
+    setGeneratingExam(true);
+    setErrorMsg('');
+    setWarningMsg('');
+
+    try {
+      const res = await fetch('/api/exam/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          mode: 'set',
+          examSet: setFilterExamSet,
+          subjectId: setFilterSubject,
+          level: setFilterLevel,
+          year: setFilterYear,
+          count: setFilterCount
+        })
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        setErrorMsg(data.error || 'เกิดข้อผิดพลาดในการสร้างชุดข้อสอบ');
+        setGeneratingExam(false);
+        return;
+      }
+
+      sessionStorage.setItem('current_exam', JSON.stringify(data.questions));
+
+      if (data.warning) {
+        setWarningMsg(data.warning);
+        setTimeout(() => {
+          router.push('/exam');
+        }, 1500);
+      } else {
+        router.push('/exam');
+      }
+    } catch (err) {
+      console.error('Error starting sets exam:', err);
+      setErrorMsg('เกิดข้อผิดพลาดทางเทคนิคในการเชื่อมต่อเซิร์ฟเวอร์');
+      setGeneratingExam(false);
+    }
+  };
+
+
   return (
-    <form onSubmit={handleStartExam} className="cartoon-card p-6 md:p-8 max-w-2xl mx-auto w-full flex flex-col gap-6">
+    <div className="cartoon-card p-6 md:p-8 max-w-2xl mx-auto w-full flex flex-col gap-6 bg-[#FAF7F0]">
       
-      {/* 1. Subject Selection */}
-      <div className="flex flex-col gap-2">
-        <label className="font-bold text-lg flex items-center gap-2">
-          <BookOpen size={20} />
-          เลือกวิชา
-        </label>
-        <div className="grid grid-cols-2 gap-4">
-          {subjects.map(sub => (
-            <button
-              key={sub.id}
-              type="button"
-              onClick={() => setSelectedSubjectId(sub.id)}
-              className={`cartoon-btn justify-center py-3 text-base ${selectedSubjectId === sub.id ? 'cartoon-btn-primary' : ''}`}
-            >
-              {sub.nameTh}
-            </button>
-          ))}
-        </div>
+      {/* Cartoon-Style Tab Selector */}
+      <div className="flex border-b-4 border-[#2D2D2D] mb-2">
+        <button
+          type="button"
+          onClick={() => {
+            setActiveTab('topics');
+            setErrorMsg('');
+            setWarningMsg('');
+          }}
+          className={`py-3 px-6 font-black text-base md:text-lg rounded-t-xl border-t-4 border-x-4 border-[#2D2D2D] transition-all transform duration-150 ${
+            activeTab === 'topics'
+              ? 'bg-[#FAF7F0] text-[#E27B58] -translate-y-[-4px] z-10'
+              : 'bg-[#E2DCC8] text-[#5E5E5E] hover:text-[#2D2D2D] opacity-80'
+          }`}
+          style={{ marginBottom: '-4px' }}
+        >
+          ทำข้อสอบแยกตามหัวข้อ
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            setActiveTab('sets');
+            setErrorMsg('');
+            setWarningMsg('');
+          }}
+          className={`py-3 px-6 font-black text-base md:text-lg rounded-t-xl border-t-4 border-x-4 border-[#2D2D2D] transition-all transform duration-150 ${
+            activeTab === 'sets'
+              ? 'bg-[#FAF7F0] text-[#E27B58] -translate-y-[-4px] z-10'
+              : 'bg-[#E2DCC8] text-[#5E5E5E] hover:text-[#2D2D2D] opacity-80'
+          }`}
+          style={{ marginBottom: '-4px' }}
+        >
+          ทำข้อสอบตามชุดข้อสอบ
+        </button>
       </div>
 
-      {/* 2. Level Selection */}
-      <div className="flex flex-col gap-2">
-        <label className="font-bold text-lg flex items-center gap-2">
-          <Layers size={20} />
-          ระดับชั้น
-        </label>
-        <div className="grid grid-cols-3 gap-3">
-          {availableLevels.map(lvl => (
-            <button
-              key={lvl.id}
-              type="button"
-              onClick={() => setSelectedLevelId(lvl.id)}
-              className={`cartoon-btn justify-center py-2 text-sm ${selectedLevelId === lvl.id ? 'cartoon-btn-primary' : ''}`}
-            >
-              {lvl.nameTh}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* 3. Topics Checklist */}
-      <div className="flex flex-col gap-2">
-        <label className="font-bold text-lg flex items-center gap-2">
-          <Settings size={20} />
-          เลือกหัวข้อ
-        </label>
-        {loadingTopics ? (
-          <div className="flex items-center gap-2 text-muted py-4 justify-center">
-            <Loader2 className="animate-spin" size={20} />
-            กำลังโหลดหัวข้อข้อสอบ...
-          </div>
-        ) : availableTopics.length === 0 ? (
-          <div className="cartoon-card bg-[#F0EDE6] p-4 text-center text-muted font-medium">
-            ไม่มีหัวข้อข้อสอบในระบบ กรุณาอัปเดตข้อสอบจาก GitHub ก่อน
-          </div>
-        ) : (
-          <div className="cartoon-card max-h-48 overflow-y-auto p-4 flex flex-col gap-2 bg-[#FAF7F0] border-2">
-            <div className="flex justify-between mb-2 pb-2 border-b-2 border-dashed border-[#ccc]">
-              <button 
-                type="button" 
-                onClick={() => setSelectedTopicIds(availableTopics.map(t => t.id))}
-                className="text-xs text-blue-600 underline font-bold"
-              >
-                เลือกทั้งหมด
-              </button>
-              <button 
-                type="button" 
-                onClick={() => setSelectedTopicIds([])}
-                className="text-xs text-red-600 underline font-bold"
-              >
-                ไม่เลือกเลย
-              </button>
+      {/* ====================================================================== */}
+      {/* TAB 1: TOPIC-BASED MODE FORM                                           */}
+      {/* ====================================================================== */}
+      {activeTab === 'topics' && (
+        <form onSubmit={handleStartExamTopics} className="flex flex-col gap-6">
+          
+          {/* 1. Subject Selection */}
+          <div className="flex flex-col gap-2">
+            <label className="font-black text-lg flex items-center gap-2 text-[#2D2D2D]">
+              <BookOpen size={20} className="text-[#E27B58]" />
+              เลือกวิชา
+            </label>
+            <div className="grid grid-cols-2 gap-4">
+              {subjects.map(sub => (
+                <button
+                  key={sub.id}
+                  type="button"
+                  onClick={() => setSelectedSubjectId(sub.id)}
+                  className={`cartoon-btn justify-center py-3 text-base font-bold ${
+                    selectedSubjectId === sub.id ? 'cartoon-btn-primary' : 'bg-white text-[#2D2D2D]'
+                  }`}
+                >
+                  {sub.nameTh}
+                </button>
+              ))}
             </div>
-            {availableTopics.map(topic => (
-              <label key={topic.id} className="flex items-center gap-2 cursor-pointer text-sm font-medium hover:text-[#E27B58]">
-                <input
-                  type="checkbox"
-                  checked={selectedTopicIds.includes(topic.id)}
-                  onChange={() => handleToggleTopic(topic.id)}
-                  className="w-4 h-4 accent-[#E27B58] cursor-pointer"
-                />
-                {topic.nameTh} ({topic.count})
-              </label>
-            ))}
           </div>
-        )}
-      </div>
 
-      {/* 4. Difficulty Star Selection */}
-      <div className="flex flex-col gap-2">
-        <label className="font-bold text-lg flex items-center gap-2">
-          <Star size={20} />
-          ระดับความยาก (เลือกได้หลายตัว)
-        </label>
-        <div className="flex items-center gap-4 py-2">
-          {[1, 2, 3, 4, 5].map(star => {
-            const isSelected = selectedDifficulties.includes(star);
-            return (
-              <button
-                key={star}
-                type="button"
-                onClick={() => handleToggleDifficulty(star)}
-                className="flex flex-col items-center gap-1 cursor-pointer bg-transparent border-0 outline-none"
-              >
-                <div className="transition-transform duration-100 active:scale-95">
-                  <Star
-                    size={36}
-                    fill={isSelected ? '#E27B58' : 'none'}
-                    stroke={isSelected ? '#E27B58' : '#2D2D2D'}
-                    strokeWidth={2.5}
-                  />
+          {/* 2. Level Selection */}
+          <div className="flex flex-col gap-2">
+            <label className="font-black text-lg flex items-center gap-2 text-[#2D2D2D]">
+              <Layers size={20} className="text-[#E27B58]" />
+              ระดับชั้น
+            </label>
+            <div className="grid grid-cols-3 gap-3">
+              {availableLevels.map(lvl => (
+                <button
+                  key={lvl.id}
+                  type="button"
+                  onClick={() => setSelectedLevelId(lvl.id)}
+                  className={`cartoon-btn justify-center py-2 text-sm font-bold ${
+                    selectedLevelId === lvl.id ? 'cartoon-btn-primary' : 'bg-white text-[#2D2D2D]'
+                  }`}
+                >
+                  {lvl.nameTh}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* 3. Topics Checklist with Science Groupings */}
+          <div className="flex flex-col gap-2">
+            <label className="font-black text-lg flex items-center gap-2 text-[#2D2D2D]">
+              <Settings size={20} className="text-[#E27B58]" />
+              เลือกหัวข้อ
+            </label>
+            {loadingTopics ? (
+              <div className="flex items-center gap-2 text-muted py-8 justify-center">
+                <Loader2 className="animate-spin text-[#E27B58]" size={24} />
+                กำลังโหลดหัวข้อข้อสอบ...
+              </div>
+            ) : availableTopics.length === 0 ? (
+              <div className="cartoon-card bg-[#F0EDE6] p-6 text-center text-muted font-bold">
+                ไม่มีหัวข้อข้อสอบในระบบ กรุณาอัปเดตข้อสอบจาก GitHub ก่อน
+              </div>
+            ) : (
+              <div className="cartoon-card max-h-[350px] overflow-y-auto p-5 flex flex-col gap-4 bg-white border-4 border-[#2D2D2D]">
+                
+                {/* Select All / Deselect All Controls */}
+                <div className="flex justify-between pb-3 border-b-2 border-dashed border-[#ccc]">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedTopicIds(availableTopics.map(t => t.id))}
+                    className="text-xs text-blue-600 underline font-black"
+                  >
+                    เลือกทั้งหมด
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedTopicIds([])}
+                    className="text-xs text-red-600 underline font-black"
+                  >
+                    ไม่เลือกเลย
+                  </button>
                 </div>
-                <span className="text-xs font-bold">{star} ดาว</span>
+
+                {/* Science grouped display vs. Math flat list */}
+                {selectedSubjectId === 'science' ? (
+                  getGroupedScienceTopics(availableTopics).map(group => (
+                    <div key={group.name} className="flex flex-col gap-2 pb-2 border-b border-dashed border-[#eee] last:border-0">
+                      <div className="flex items-center justify-between bg-[#F7F5EE] py-1 px-3 rounded-lg border-2 border-[#2D2D2D]">
+                        <span className="font-black text-sm text-[#E27B58]">{group.name}</span>
+                        <div className="flex gap-2">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const groupIds = group.list.map(t => t.id);
+                              setSelectedTopicIds(prev => [...new Set([...prev, ...groupIds])]);
+                            }}
+                            className="text-[10px] text-blue-600 hover:underline font-bold"
+                          >
+                            เลือกกลุ่มนี้
+                          </button>
+                          <span className="text-[10px] text-gray-400">|</span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const groupIds = group.list.map(t => t.id);
+                              setSelectedTopicIds(prev => prev.filter(id => !groupIds.includes(id)));
+                            }}
+                            className="text-[10px] text-red-600 hover:underline font-bold"
+                          >
+                            ล้างกลุ่มนี้
+                          </button>
+                        </div>
+                      </div>
+                      <div className="pl-2 flex flex-col gap-1.5">
+                        {group.list.map(topic => (
+                          <label key={topic.id} className="flex items-start gap-2.5 cursor-pointer text-sm font-bold hover:text-[#E27B58] transition-colors py-0.5">
+                            <input
+                              type="checkbox"
+                              checked={selectedTopicIds.includes(topic.id)}
+                              onChange={() => handleToggleTopic(topic.id)}
+                              className="w-4 h-4 accent-[#E27B58] cursor-pointer mt-0.5"
+                            />
+                            <span className="leading-tight">{topic.nameTh} ({topic.count})</span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  // Mathematics or other subjects (Flat List)
+                  <div className="flex flex-col gap-2">
+                    {availableTopics.map(topic => (
+                      <label key={topic.id} className="flex items-start gap-2.5 cursor-pointer text-sm font-bold hover:text-[#E27B58] transition-colors py-0.5">
+                        <input
+                          type="checkbox"
+                          checked={selectedTopicIds.includes(topic.id)}
+                          onChange={() => handleToggleTopic(topic.id)}
+                          className="w-4 h-4 accent-[#E27B58] cursor-pointer mt-0.5"
+                        />
+                        <span className="leading-tight">{topic.nameTh} ({topic.count})</span>
+                      </label>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* 4. Question Count */}
+          <div className="flex flex-col gap-2">
+            <label className="font-black text-lg flex items-center gap-2 text-[#2D2D2D]">
+              <HelpCircle size={20} className="text-[#E27B58]" />
+              จำนวนข้อสอบ
+            </label>
+            <input
+              type="number"
+              min={1}
+              max={100}
+              value={questionCount}
+              onChange={(e) => setQuestionCount(Math.max(1, parseInt(e.target.value) || 1))}
+              className="cartoon-input w-28 text-center text-lg font-black"
+            />
+          </div>
+
+          {/* Messages */}
+          {errorMsg && (
+            <div className="cartoon-card bg-[#FCE8E6] border-red-500 text-red-700 p-4 font-bold text-center border-4">
+              {errorMsg}
+            </div>
+          )}
+          {warningMsg && (
+            <div className="cartoon-card bg-[#FFF4E5] border-yellow-500 text-yellow-800 p-4 font-bold text-center animate-pulse border-4">
+              {warningMsg}
+            </div>
+          )}
+
+          {/* Submit */}
+          <button
+            type="submit"
+            disabled={generatingExam || availableTopics.length === 0}
+            className="cartoon-btn cartoon-btn-primary justify-center py-4 text-lg font-black mt-4 border-4"
+          >
+            {generatingExam ? (
+              <>
+                <Loader2 className="animate-spin" size={24} />
+                กำลังสร้างชุดข้อสอบ...
+              </>
+            ) : (
+              'เริ่มจำลองการทำข้อสอบ'
+            )}
+          </button>
+        </form>
+      )}
+
+      {/* ====================================================================== */}
+      {/* TAB 2: EXAM SETS PRACTICE MODE FORM                                    */}
+      {/* ====================================================================== */}
+      {activeTab === 'sets' && (
+        <form onSubmit={handleStartExamSets} className="flex flex-col gap-6">
+          
+          {/* 1. Exam Set selection */}
+          <div className="flex flex-col gap-2">
+            <label className="font-black text-lg flex items-center gap-2 text-[#2D2D2D]">
+              <Clipboard size={20} className="text-[#E27B58]" />
+              ชุดข้อสอบ
+            </label>
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => setSetFilterExamSet('ทั้งหมด')}
+                className={`cartoon-btn px-4 py-2 text-sm font-bold ${
+                  setFilterExamSet === 'ทั้งหมด' ? 'cartoon-btn-primary' : 'bg-white text-[#2D2D2D]'
+                }`}
+              >
+                ทั้งหมด
               </button>
-            );
-          })}
-        </div>
-      </div>
+              {metaExamSets.map(set => (
+                <button
+                  key={set}
+                  type="button"
+                  onClick={() => setSetFilterExamSet(set)}
+                  className={`cartoon-btn px-4 py-2 text-sm font-bold ${
+                    setFilterExamSet === set ? 'cartoon-btn-primary' : 'bg-white text-[#2D2D2D]'
+                  }`}
+                >
+                  {set}
+                </button>
+              ))}
+            </div>
+          </div>
 
-      {/* 5. Question Count */}
-      <div className="flex flex-col gap-2">
-        <label className="font-bold text-lg flex items-center gap-2">
-          <HelpCircle size={20} />
-          จำนวนข้อสอบ
-        </label>
-        <input
-          type="number"
-          min={1}
-          max={100}
-          value={questionCount}
-          onChange={(e) => setQuestionCount(Math.max(1, parseInt(e.target.value) || 1))}
-          className="cartoon-input w-28 text-center text-lg font-bold"
-        />
-      </div>
+          {/* 2. Subject Selection */}
+          <div className="flex flex-col gap-2">
+            <label className="font-black text-lg flex items-center gap-2 text-[#2D2D2D]">
+              <BookOpen size={20} className="text-[#E27B58]" />
+              วิชา
+            </label>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+              {[
+                { id: 'ทั้งหมด', name: 'ทั้งหมด' },
+                { id: 'mathematics', name: 'คณิตศาสตร์' },
+                { id: 'science', name: 'วิทยาศาสตร์' },
+                { id: 'thai', name: 'ภาษาไทย' },
+                { id: 'english', name: 'ภาษาอังกฤษ' }
+              ].map(sub => (
+                <button
+                  key={sub.id}
+                  type="button"
+                  onClick={() => setSetFilterSubject(sub.id)}
+                  className={`cartoon-btn justify-center py-2 text-sm font-bold ${
+                    setFilterSubject === sub.id ? 'cartoon-btn-primary' : 'bg-white text-[#2D2D2D]'
+                  }`}
+                >
+                  {sub.name}
+                </button>
+              ))}
+            </div>
+          </div>
 
-      {/* Message Area */}
-      {errorMsg && (
-        <div className="cartoon-card bg-[#FCE8E6] border-red-500 text-red-700 p-4 font-bold text-center">
-          {errorMsg}
-        </div>
+          {/* 3. Level Selection */}
+          <div className="flex flex-col gap-2">
+            <label className="font-black text-lg flex items-center gap-2 text-[#2D2D2D]">
+              <Layers size={20} className="text-[#E27B58]" />
+              ระดับชั้น
+            </label>
+            <div className="grid grid-cols-3 gap-3">
+              {['ประถม', 'มัธยมต้น', 'มัธยมปลาย'].map(lvl => (
+                <button
+                  key={lvl}
+                  type="button"
+                  onClick={() => setSetFilterLevel(lvl)}
+                  className={`cartoon-btn justify-center py-2 text-sm font-bold ${
+                    setFilterLevel === lvl ? 'cartoon-btn-primary' : 'bg-white text-[#2D2D2D]'
+                  }`}
+                >
+                  {lvl}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* 4. Year Selection (Buddhist Era พ.ศ. sorted highest to lowest) */}
+          <div className="flex flex-col gap-2">
+            <label className="font-black text-lg flex items-center gap-2 text-[#2D2D2D]">
+              <ListFilter size={20} className="text-[#E27B58]" />
+              ปี พ.ศ. ข้อสอบ
+            </label>
+            {loadingMeta ? (
+              <span className="text-xs text-gray-500 font-bold">กำลังโหลดปีข้อสอบ...</span>
+            ) : (
+              <select
+                value={setFilterYear}
+                onChange={(e) => setSetFilterYear(e.target.value)}
+                className="cartoon-input w-full bg-white font-bold"
+              >
+                <option value="ทั้งหมด">ทั้งหมด</option>
+                {metaYears.map(yr => (
+                  <option key={yr} value={yr}>
+                    ปี พ.ศ. {yr}
+                  </option>
+                ))}
+              </select>
+            )}
+          </div>
+
+          {/* 5. Match Counter info (Interactive count) */}
+          <div className="cartoon-card bg-[#F4EFEB] border-2 border-[#2D2D2D] p-4 text-center">
+            {loadingMatchCount ? (
+              <div className="flex items-center justify-center gap-2 text-[#5E5E5E] font-bold">
+                <Loader2 className="animate-spin text-[#E27B58]" size={16} />
+                กำลังตรวจสอบคลังข้อสอบ...
+              </div>
+            ) : (
+              <div className="font-black text-base text-[#2D2D2D]">
+                พบข้อสอบที่ตรงเงื่อนไข: <strong className="text-2xl text-[#E27B58]">{setMatchCount}</strong> ข้อ
+              </div>
+            )}
+          </div>
+
+          {/* 6. Question Limit Selection */}
+          <div className="flex flex-col gap-2">
+            <label className="font-black text-lg flex items-center gap-2 text-[#2D2D2D]">
+              <HelpCircle size={20} className="text-[#E27B58]" />
+              จำนวนข้อสอบที่ต้องการทำ
+            </label>
+            <div className="flex items-center gap-2">
+              {['10', '20', '30', '50', 'ทั้งหมด'].map(opt => (
+                <button
+                  key={opt}
+                  type="button"
+                  onClick={() => setSetFilterCount(opt)}
+                  className={`cartoon-btn px-4 py-2 text-sm font-bold ${
+                    setFilterCount === opt ? 'cartoon-btn-primary' : 'bg-white text-[#2D2D2D]'
+                  }`}
+                >
+                  {opt}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Messages */}
+          {errorMsg && (
+            <div className="cartoon-card bg-[#FCE8E6] border-red-500 text-red-700 p-4 font-bold text-center border-4">
+              {errorMsg}
+            </div>
+          )}
+          {warningMsg && (
+            <div className="cartoon-card bg-[#FFF4E5] border-yellow-500 text-yellow-800 p-4 font-bold text-center animate-pulse border-4">
+              {warningMsg}
+            </div>
+          )}
+
+          {/* Submit */}
+          <button
+            type="submit"
+            disabled={generatingExam || setMatchCount === 0}
+            className="cartoon-btn cartoon-btn-primary justify-center py-4 text-lg font-black mt-4 border-4"
+          >
+            {generatingExam ? (
+              <>
+                <Loader2 className="animate-spin" size={24} />
+                กำลังเตรียมกระดาษคำถาม...
+              </>
+            ) : (
+              'เริ่มจำลองการทำข้อสอบ'
+            )}
+          </button>
+        </form>
       )}
-      {warningMsg && (
-        <div className="cartoon-card bg-[#FFF4E5] border-yellow-500 text-yellow-800 p-4 font-bold text-center animate-pulse">
-          {warningMsg}
-        </div>
-      )}
 
-      {/* Action Button */}
-      <button
-        type="submit"
-        disabled={generatingExam || availableTopics.length === 0}
-        className="cartoon-btn cartoon-btn-primary justify-center py-3 text-lg font-bold mt-4"
-      >
-        {generatingExam ? (
-          <>
-            <Loader2 className="animate-spin" size={24} />
-            กำลังสร้างชุดข้อสอบ...
-          </>
-        ) : (
-          'เริ่มจำลองการทำข้อสอบ'
-        )}
-      </button>
-    </form>
+    </div>
   );
 }

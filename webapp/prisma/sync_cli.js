@@ -85,6 +85,15 @@ async function main() {
         });
 
         // D. Save Question
+        const examSet = q.examSet || (() => {
+          if (!q.id) return 'TEDET';
+          const upper = q.id.toUpperCase();
+          if (upper.startsWith('TEDET')) return 'TEDET';
+          if (upper.startsWith('ONET') || upper.startsWith('O_NET') || upper.startsWith('O-NET')) return 'O-NET';
+          const match = q.id.match(/^([A-Za-z]+)/);
+          return match ? match[1].toUpperCase() : 'TEDET';
+        })();
+
         await prisma.question.upsert({
           where: { id: q.id },
           update: {
@@ -96,7 +105,8 @@ async function main() {
             questionText: q.questionText,
             answerText: q.answerText,
             correctAnswer: q.correctAnswer,
-            images: JSON.stringify(q.images || [])
+            images: JSON.stringify(q.images || []),
+            examSet: examSet
           },
           create: {
             id: q.id,
@@ -108,7 +118,8 @@ async function main() {
             questionText: q.questionText,
             answerText: q.answerText,
             correctAnswer: q.correctAnswer,
-            images: JSON.stringify(q.images || [])
+            images: JSON.stringify(q.images || []),
+            examSet: examSet
           }
         });
 

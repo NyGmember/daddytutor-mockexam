@@ -53,17 +53,17 @@ export async function GET(request) {
       const subject = metadata.subject || 'คณิตศาสตร์';
       const levelStr = metadata.level || '';
       
-      subjectId = (subject === 'วิทยาศาสตร์' || subject.toLowerCase() === 'science') ? 'science' : 'mathematics';
+      subjectId = (subject === 'วิทยาศาสตร์' || subject.toLowerCase() === 'science') ? 'science' : 
+                  (subject === 'ภาษาไทย' || subject.toLowerCase() === 'thai') ? 'thai' :
+                  (subject === 'ภาษาอังกฤษ' || subject.toLowerCase() === 'english') ? 'english' : 'mathematics';
 
-      if (subjectId === 'mathematics') {
-        if (levelStr.includes('ประถม')) levelId = 'math_primary';
-        else if (levelStr.includes('มัธยมปลาย') || levelStr.includes('G10')) levelId = 'math_upper_secondary';
-        else levelId = 'math_lower_secondary';
-      } else {
-        if (levelStr.includes('ประถม')) levelId = 'sci_primary';
-        else if (levelStr.includes('มัธยมปลาย') || levelStr.includes('G10')) levelId = 'sci_upper_secondary';
-        else levelId = 'sci_lower_secondary';
-      }
+      const levelPrefix = subjectId === 'mathematics' ? 'math_' : 
+                          subjectId === 'science' ? 'sci_' : 
+                          subjectId === 'thai' ? 'thai_' : 'english_';
+
+      if (levelStr.includes('ประถม')) levelId = levelPrefix + 'primary';
+      else if (levelStr.includes('มัธยมปลาย') || levelStr.includes('G10')) levelId = levelPrefix + 'upper_secondary';
+      else levelId = levelPrefix + 'lower_secondary';
 
       topicId = metadata.topic_id || '';
       topicNameTh = metadata.topic_name || '';
@@ -114,17 +114,17 @@ export async function GET(request) {
         const subject = metadata.subject || 'คณิตศาสตร์';
         const levelStr = metadata.level || '';
         
-        subjectId = (subject === 'วิทยาศาสตร์' || subject.toLowerCase() === 'science') ? 'science' : 'mathematics';
+        subjectId = (subject === 'วิทยาศาสตร์' || subject.toLowerCase() === 'science') ? 'science' : 
+                    (subject === 'ภาษาไทย' || subject.toLowerCase() === 'thai') ? 'thai' :
+                    (subject === 'ภาษาอังกฤษ' || subject.toLowerCase() === 'english') ? 'english' : 'mathematics';
 
-        if (subjectId === 'mathematics') {
-          if (levelStr.includes('ประถม')) levelId = 'math_primary';
-          else if (levelStr.includes('มัธยมปลาย') || levelStr.includes('G10')) levelId = 'math_upper_secondary';
-          else levelId = 'math_lower_secondary';
-        } else {
-          if (levelStr.includes('ประถม')) levelId = 'sci_primary';
-          else if (levelStr.includes('มัธยมปลาย') || levelStr.includes('G10')) levelId = 'sci_upper_secondary';
-          else levelId = 'sci_lower_secondary';
-        }
+        const levelPrefix = subjectId === 'mathematics' ? 'math_' : 
+                            subjectId === 'science' ? 'sci_' : 
+                            subjectId === 'thai' ? 'thai_' : 'english_';
+
+        if (levelStr.includes('ประถม')) levelId = levelPrefix + 'primary';
+        else if (levelStr.includes('มัธยมปลาย') || levelStr.includes('G10')) levelId = levelPrefix + 'upper_secondary';
+        else levelId = levelPrefix + 'lower_secondary';
 
         topicId = metadata.topic_id || '';
         topicNameTh = metadata.topic_name || '';

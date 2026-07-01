@@ -32,7 +32,10 @@ export async function POST(request) {
     }
 
     // 1. Map to Thai metadata values for disk frontmatter
-    const subject = subjectId === 'mathematics' ? 'คณิตศาสตร์' : 'วิทยาศาสตร์';
+    const subject = subjectId === 'mathematics' ? 'คณิตศาสตร์' : 
+                    subjectId === 'science' ? 'วิทยาศาสตร์' :
+                    subjectId === 'thai' ? 'ภาษาไทย' :
+                    subjectId === 'english' ? 'ภาษาอังกฤษ' : subjectId;
     
     let level = 'มัธยมต้น (G7-G9)';
     if (levelId.includes('primary')) {
@@ -41,9 +44,18 @@ export async function POST(request) {
       level = 'มัธยมปลาย (G10-G12)';
     }
 
+    const examSet = (() => {
+      if (!id) return 'TEDET';
+      const upper = id.toUpperCase();
+      if (upper.startsWith('TEDET')) return 'TEDET';
+      if (upper.startsWith('ONET') || upper.startsWith('O_NET') || upper.startsWith('O-NET')) return 'O-NET';
+      const match = id.match(/^([A-Za-z]+)/);
+      return match ? match[1].toUpperCase() : 'TEDET';
+    })();
+
     // 2. Prepare YAML metadata
     const frontmatter = {
-      exam_name: 'TEDET',
+      exam_name: examSet,
       subject,
       level,
       grade: grade || 'G7',
@@ -119,7 +131,8 @@ export async function POST(request) {
         questionText,
         answerText, // only store explanation markdown body in database
         correctAnswer: correctAnswer.toString(),
-        images: JSON.stringify(images)
+        images: JSON.stringify(images),
+        examSet: examSet
       },
       create: {
         id,
@@ -131,7 +144,8 @@ export async function POST(request) {
         questionText,
         answerText,
         correctAnswer: correctAnswer.toString(),
-        images: JSON.stringify(images)
+        images: JSON.stringify(images),
+        examSet: examSet
       }
     });
 

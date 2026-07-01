@@ -41,6 +41,7 @@ model Question {
   answerText    String   // Markdown with LaTeX (Explanation)
   correctAnswer String   // e.g. "3"
   images        String   // JSON string of image filenames, e.g., '["img1.png"]'
+  examSet       String   @default("TEDET")
   level         Level    @relation(fields: [levelId], references: [id])
   topic         Topic    @relation(fields: [topicId], references: [id])
 }
