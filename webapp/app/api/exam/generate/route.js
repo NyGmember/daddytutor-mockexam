@@ -4,7 +4,7 @@ import prisma from '@/lib/prisma';
 export async function POST(request) {
   try {
     const body = await request.json();
-    const { mode = 'topic', subjectId, levelId, topicIds, difficulties, examSet, level, year, count = 10 } = body;
+    const { mode = 'topic', subjectId, levelId, topicIds, difficulties, examSet, level, year, grade, count = 10 } = body;
 
     // 1. Build query filters based on mode
     const where = {};
@@ -26,6 +26,9 @@ export async function POST(request) {
       }
       if (year && year !== 'ทั้งหมด') {
         where.year = parseInt(year);
+      }
+      if (grade) {
+        where.id = { contains: `_${grade}_` };
       }
     } else {
       // Topic Mode
@@ -59,16 +62,9 @@ export async function POST(request) {
       });
     }
 
-    // Determine if we should sort in order or shuffle
-    // We sort in order if count is "all"/"ทั้งหมด" OR if we have a specific test paper selected
-    const isSpecificPaper = mode === 'set' && 
-                            examSet && examSet !== 'ทั้งหมด' && 
-                            subjectId && subjectId !== 'ทั้งหมด' && 
-                            level && 
-                            year && year !== 'ทั้งหมด';
-    
-    const isAll = count === 'all' || count === 'ทั้งหมด';
-    const shouldSortInOrder = isAll || isSpecificPaper;
+    const isSetMode = mode === 'set';
+    const isAll = count === 'all' || count === 'ทั้งหมด' || isSetMode;
+    const shouldSortInOrder = isAll;
 
     let selectedIds = [];
     if (shouldSortInOrder) {

@@ -189,9 +189,11 @@ export default function CustomExamForm({ subjects }) {
   const [setFilterSubject, setSetFilterSubject] = useState('ทั้งหมด'); // 'ทั้งหมด', 'mathematics', 'science', 'thai', 'english'
   const [setFilterLevel, setSetFilterLevel] = useState('มัธยมต้น'); // 'ประถม', 'มัธยมต้น', 'มัธยมปลาย'
   const [setFilterYear, setSetFilterYear] = useState('ทั้งหมด');
-  const [setFilterCount, setSetFilterCount] = useState('ทั้งหมด'); // 10, 20, 30, 50, 'ทั้งหมด'
-  const [setMatchCount, setSetMatchCount] = useState(0);
-  const [loadingMatchCount, setLoadingMatchCount] = useState(false);
+
+  // Matching papers and selected paper states
+  const [foundPapers, setFoundPapers] = useState([]);
+  const [selectedPaper, setSelectedPaper] = useState(null);
+  const [loadingPapers, setLoadingPapers] = useState(false);
 
   // Load sets & years metadata on mount
   useEffect(() => {
@@ -215,14 +217,14 @@ export default function CustomExamForm({ subjects }) {
     loadMeta();
   }, []);
 
-  // Update matching questions count when filters change in Sets Mode
+  // Update matching papers list when filters change in Sets Mode
   useEffect(() => {
     if (activeTab !== 'sets') return;
 
-    async function checkCount() {
-      setLoadingMatchCount(true);
+    async function searchPapers() {
+      setLoadingPapers(true);
       try {
-        const res = await fetch('/api/exam/check-count', {
+        const res = await fetch('/api/exam/search-sets', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -235,25 +237,34 @@ export default function CustomExamForm({ subjects }) {
         if (res.ok) {
           const data = await res.json();
           if (data.success) {
-            setSetMatchCount(data.count);
+            setFoundPapers(data.papers);
+            // Auto-select first paper if current selection is not in list or none selected
+            if (data.papers.length > 0) {
+              const isStillAvailable = data.papers.some(p => p.paperId === selectedPaper?.paperId);
+              if (!isStillAvailable) {
+                setSelectedPaper(data.papers[0]);
+              }
+            } else {
+              setSelectedPaper(null);
+            }
           }
         }
       } catch (err) {
-        console.error('Error fetching matching count:', err);
+        console.error('Error searching sets:', err);
       } finally {
-        setLoadingMatchCount(false);
+        setLoadingPapers(false);
       }
     }
 
-    const timer = setTimeout(checkCount, 250); // slight debounce
+    const timer = setTimeout(searchPapers, 250); // slight debounce
     return () => clearTimeout(timer);
   }, [activeTab, setFilterExamSet, setFilterSubject, setFilterLevel, setFilterYear]);
 
   // Sets Mode submit
   const handleStartExamSets = async (e) => {
     e.preventDefault();
-    if (setMatchCount === 0) {
-      setErrorMsg('ไม่พบข้อสอบที่ตรงตามเงื่อนไขเพื่อสร้างแบบทดสอบ');
+    if (!selectedPaper) {
+      setErrorMsg('กรุณาเลือกชุดข้อสอบก่อนเพื่อสร้างแบบทดสอบ');
       return;
     }
 
@@ -267,11 +278,10 @@ export default function CustomExamForm({ subjects }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           mode: 'set',
-          examSet: setFilterExamSet,
-          subjectId: setFilterSubject,
-          level: setFilterLevel,
-          year: setFilterYear,
-          count: setFilterCount
+          examSet: selectedPaper.examSet,
+          subjectId: selectedPaper.subjectId,
+          year: selectedPaper.year,
+          grade: selectedPaper.grade
         })
       });
 
@@ -335,7 +345,7 @@ export default function CustomExamForm({ subjects }) {
           }`}
           style={{ marginBottom: '-4px' }}
         >
-          ทำข้อสอบตามชุดข้อสอบ
+          ชุดข้อสอบ
         </button>
       </div>
 
@@ -647,40 +657,48 @@ export default function CustomExamForm({ subjects }) {
             )}
           </div>
 
-          {/* 5. Match Counter info (Interactive count) */}
-          <div className="cartoon-card bg-[#F4EFEB] border-2 border-[#2D2D2D] p-4 text-center">
-            {loadingMatchCount ? (
-              <div className="flex items-center justify-center gap-2 text-[#5E5E5E] font-bold">
-                <Loader2 className="animate-spin text-[#E27B58]" size={16} />
-                กำลังตรวจสอบคลังข้อสอบ...
-              </div>
-            ) : (
-              <div className="font-black text-base text-[#2D2D2D]">
-                พบข้อสอบที่ตรงเงื่อนไข: <strong className="text-2xl text-[#E27B58]">{setMatchCount}</strong> ข้อ
-              </div>
-            )}
-          </div>
-
-          {/* 6. Question Limit Selection */}
+          {/* 5. Found Exam Sets List */}
           <div className="flex flex-col gap-2">
             <label className="font-black text-lg flex items-center gap-2 text-[#2D2D2D]">
-              <HelpCircle size={20} className="text-[#E27B58]" />
-              จำนวนข้อสอบที่ต้องการทำ
+              <Clipboard size={20} className="text-[#E27B58]" />
+              เลือกชุดข้อสอบที่ต้องการทำ
             </label>
-            <div className="flex items-center gap-2">
-              {['10', '20', '30', '50', 'ทั้งหมด'].map(opt => (
-                <button
-                  key={opt}
-                  type="button"
-                  onClick={() => setSetFilterCount(opt)}
-                  className={`cartoon-btn px-4 py-2 text-sm font-bold ${
-                    setFilterCount === opt ? 'cartoon-btn-primary' : 'bg-white text-[#2D2D2D]'
-                  }`}
-                >
-                  {opt}
-                </button>
-              ))}
-            </div>
+            
+            {loadingPapers ? (
+              <div className="flex items-center justify-center gap-2 text-[#5E5E5E] font-bold py-6">
+                <Loader2 className="animate-spin text-[#E27B58]" size={20} />
+                กำลังค้นหาชุดข้อสอบ...
+              </div>
+            ) : foundPapers.length === 0 ? (
+              <div className="cartoon-card bg-[#FCE8E6] border-red-400 text-red-700 p-6 text-center font-bold">
+                ไม่พบชุดข้อสอบที่ตรงตามเงื่อนไขการค้นหา
+              </div>
+            ) : (
+              <div className="cartoon-card max-h-[250px] overflow-y-auto p-4 flex flex-col gap-2.5 bg-white border-4 border-[#2D2D2D]">
+                {foundPapers.map(paper => {
+                  const isSelected = selectedPaper?.paperId === paper.paperId;
+                  return (
+                    <button
+                      key={paper.paperId}
+                      type="button"
+                      onClick={() => setSelectedPaper(paper)}
+                      className={`w-full text-left p-3 rounded-lg border-2 border-[#2D2D2D] font-bold transition-all flex items-center justify-between ${
+                        isSelected 
+                          ? 'bg-[#E27B58] text-white shadow-[2px_2px_0px_rgba(0,0,0,1)]' 
+                          : 'bg-[#FDFBF7] text-[#2D2D2D] hover:bg-[#F5EFE6]'
+                      }`}
+                    >
+                      <span className="text-sm md:text-base">{paper.friendlyName}</span>
+                      <span className={`text-xs px-2 py-0.5 rounded-full border ${
+                        isSelected ? 'bg-white/20 border-white' : 'bg-gray-100 border-[#2D2D2D]/30'
+                      }`}>
+                        {paper.questionCount} ข้อ
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
           {/* Messages */}
@@ -698,7 +716,7 @@ export default function CustomExamForm({ subjects }) {
           {/* Submit */}
           <button
             type="submit"
-            disabled={generatingExam || setMatchCount === 0}
+            disabled={generatingExam || !selectedPaper}
             className="cartoon-btn cartoon-btn-primary justify-center py-4 text-lg font-black mt-4 border-4"
           >
             {generatingExam ? (
@@ -706,8 +724,10 @@ export default function CustomExamForm({ subjects }) {
                 <Loader2 className="animate-spin" size={24} />
                 กำลังเตรียมกระดาษคำถาม...
               </>
+            ) : selectedPaper ? (
+              `เริ่มทำข้อสอบ: ${selectedPaper.friendlyName}`
             ) : (
-              'เริ่มจำลองการทำข้อสอบ'
+              'กรุณาเลือกชุดข้อสอบ'
             )}
           </button>
         </form>
