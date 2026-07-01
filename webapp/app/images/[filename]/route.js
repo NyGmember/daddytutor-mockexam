@@ -4,9 +4,17 @@ import path from 'path';
 
 export async function GET(request, { params }) {
   const { filename } = params;
-  const imagePath = path.join(process.cwd(), '..', 'images', filename);
+  const rootImagePath = path.join(process.cwd(), '..', 'images', filename);
+  const publicImagePath = path.join(process.cwd(), 'public', 'images', filename);
 
-  if (!fs.existsSync(imagePath)) {
+  let imagePath = '';
+  if (fs.existsSync(rootImagePath)) {
+    imagePath = rootImagePath;
+  } else if (fs.existsSync(publicImagePath)) {
+    imagePath = publicImagePath;
+  }
+
+  if (!imagePath) {
     return new NextResponse('Image not found', { status: 404 });
   }
 

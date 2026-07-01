@@ -39,6 +39,36 @@ function renderBlockMath(math) {
 }
 
 /**
+ * Renders a Markdown table block into safe HTML.
+ */
+function renderTable(tableLines) {
+  let rowsHtml = [];
+  let isFirstRow = true;
+
+  for (let line of tableLines) {
+    // Remove leading and trailing pipe, then split by pipe
+    const cells = line.slice(1, -1).split('|').map(c => c.trim());
+
+    // Check if this is the separator row (e.g., :---, :---:, ---:)
+    const isSeparatorRow = cells.every(c => /^:?-+:?$/.test(c));
+    if (isSeparatorRow) {
+      continue; // Skip separator row
+    }
+
+    if (isFirstRow) {
+      const ths = cells.map(c => `<th class="cartoon-th">${c}</th>`).join('');
+      rowsHtml.push(`<tr>${ths}</tr>`);
+      isFirstRow = false;
+    } else {
+      const tds = cells.map(c => `<td class="cartoon-td">${c}</td>`).join('');
+      rowsHtml.push(`<tr>${tds}</tr>`);
+    }
+  }
+
+  return `<div class="table-wrapper"><table class="cartoon-table">${rowsHtml.join('\n')}</table></div>`;
+}
+
+/**
  * Parses markdown + LaTeX string and returns safe HTML.
  */
 export function renderMarkdown(markdownText = '') {
@@ -84,10 +114,34 @@ export function renderMarkdown(markdownText = '') {
   const lines = html.split('\n');
   let inList = false;
   let inOrderedList = false;
+  let inTable = false;
+  let tableRows = [];
   let processedLines = [];
 
   for (let line of lines) {
     let cleanLine = line.trim();
+
+    // Tables
+    const isTableRow = cleanLine.startsWith('|') && cleanLine.endsWith('|');
+    if (isTableRow) {
+      if (inList) { processedLines.push('</ul>'); inList = false; }
+      if (inOrderedList) { processedLines.push('</ol>'); inOrderedList = false; }
+      
+      if (!inTable) {
+        inTable = true;
+        tableRows = [cleanLine];
+      } else {
+        tableRows.push(cleanLine);
+      }
+      continue;
+    }
+
+    // Close table if we hit a non-table line
+    if (!isTableRow && inTable) {
+      processedLines.push(renderTable(tableRows));
+      inTable = false;
+      tableRows = [];
+    }
 
     // Headers
     if (cleanLine.startsWith('# ')) {
@@ -146,9 +200,10 @@ export function renderMarkdown(markdownText = '') {
     }
   }
 
-  // Close any open lists at the end
+  // Close any open lists/tables at the end
   if (inList) processedLines.push('</ul>');
   if (inOrderedList) processedLines.push('</ol>');
+  if (inTable) processedLines.push(renderTable(tableRows));
 
   html = processedLines.join('\n');
 
