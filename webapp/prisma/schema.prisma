@@ -50,3 +50,18 @@ model SyncLog {
   version  String   @id // e.g. "1.0.0"
   syncedAt DateTime @default(now())
 }
+
+model BugReport {
+  id              String   @id @default(uuid())
+  createdAt       DateTime @default(now())
+  host            String
+  appVersion      String
+  patchVersion    String
+  userAgent       String?
+  currentPage     String
+  filterSettings  String?
+  currentExamName String?
+  errorDescription String
+  tag             String   @default("new issue") // "new issue", "Dismiss", "Resolve"
+}
+

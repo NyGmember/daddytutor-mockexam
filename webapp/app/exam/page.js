@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { renderMarkdown } from '@/lib/markdown';
+import { getCookie, setCookie } from '@/lib/cookies';
 import { 
   ArrowLeft, ArrowRight, Home, Eye, EyeOff, Play, Pause, RotateCcw, 
   Clock, Timer, Minimize2, Maximize2, AlertCircle 
@@ -22,6 +23,7 @@ export default function ExamPage() {
   const [timerActive, setTimerActive] = useState(false);
   const [time, setTime] = useState(0); // in seconds
   const [countdownMinutes, setCountdownMinutes] = useState(10); // default countdown minutes
+  const [hasLoadedTimerCookies, setHasLoadedTimerCookies] = useState(false);
   
   // Refs
   const intervalRef = useRef(null);
@@ -38,6 +40,53 @@ export default function ExamPage() {
       }
     }
   }, []);
+
+  // Sync index to sessionStorage
+  useEffect(() => {
+    sessionStorage.setItem('current_exam_index', currentIndex.toString());
+  }, [currentIndex]);
+
+  // Load timer settings from cookies
+  useEffect(() => {
+    const savedShowTimer = getCookie('dt_show_timer');
+    if (savedShowTimer !== null) setShowTimer(savedShowTimer === 'true');
+
+    const savedTimerMode = getCookie('dt_timer_mode');
+    if (savedTimerMode) setTimerMode(savedTimerMode);
+
+    const savedCountdownMins = getCookie('dt_countdown_minutes');
+    if (savedCountdownMins) {
+      const mins = parseInt(savedCountdownMins);
+      setCountdownMinutes(mins);
+    }
+    setHasLoadedTimerCookies(true);
+  }, []);
+
+  // Save timer configurations to cookies when they change
+  useEffect(() => {
+    if (!hasLoadedTimerCookies) return;
+    setCookie('dt_show_timer', showTimer ? 'true' : 'false');
+  }, [showTimer, hasLoadedTimerCookies]);
+
+  useEffect(() => {
+    if (!hasLoadedTimerCookies) return;
+    setCookie('dt_timer_mode', timerMode);
+  }, [timerMode, hasLoadedTimerCookies]);
+
+  useEffect(() => {
+    if (!hasLoadedTimerCookies) return;
+    setCookie('dt_countdown_minutes', countdownMinutes.toString());
+  }, [countdownMinutes, hasLoadedTimerCookies]);
+
+  // Initialize time depending on mode
+  useEffect(() => {
+    if (!hasLoadedTimerCookies) return;
+    if (timerMode === 'countdown') {
+      setTime(countdownMinutes * 60);
+    } else {
+      setTime(0);
+    }
+  }, [timerMode, countdownMinutes, hasLoadedTimerCookies]);
 
   // Timer interval control
   useEffect(() => {

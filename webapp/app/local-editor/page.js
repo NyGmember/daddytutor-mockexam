@@ -8,8 +8,9 @@ import {
   BookOpen, Layers, Star, Play, Clipboard
 } from 'lucide-react';
 import Link from 'next/link';
+import AdminSecurityWrapper from '@/components/AdminSecurityWrapper';
 
-export default function LocalEditorPage() {
+function LocalEditorContent() {
   // Config state
   const [configSubjects, setConfigSubjects] = useState([]);
   
@@ -30,6 +31,7 @@ export default function LocalEditorPage() {
   const [pushLoading, setPushLoading] = useState(false);
   const [pushResult, setPushResult] = useState(null);
   const [pushError, setPushError] = useState('');
+  const [pushLogs, setPushLogs] = useState([]);
 
   // Git Initialization Panel states
   const [gitInitLoading, setGitInitLoading] = useState(false);
@@ -357,6 +359,7 @@ export default function LocalEditorPage() {
     setPushLoading(true);
     setPushError('');
     setPushResult(null);
+    setPushLogs(['กำลังเริ่มกระบวนการจัดทำแพตช์...']);
 
     try {
       const res = await fetch('/api/local-editor/push', {
@@ -370,6 +373,10 @@ export default function LocalEditorPage() {
       });
 
       const data = await res.json();
+      if (data.processLogs) {
+        setPushLogs(data.processLogs);
+      }
+
       if (res.ok && data.success) {
         setPushResult(data);
         setSelectedPushIds([]); // Clear selection
@@ -382,6 +389,7 @@ export default function LocalEditorPage() {
     } catch (err) {
       console.error('Error pushing release:', err);
       setPushError('เกิดข้อผิดพลาดในการติดต่อเซิร์ฟเวอร์');
+      setPushLogs(prev => [...prev, 'ข้อผิดพลาด: การติดต่อเซิร์ฟเวอร์ล้มเหลว']);
     } finally {
       setPushLoading(false);
     }
@@ -828,6 +836,22 @@ export default function LocalEditorPage() {
                     ) : (
                       <span className="text-xs text-orange-600 font-bold">⚠ บันทึกในเครื่องแล้ว แต่ Push ไม่ผ่าน: {pushResult.gitPushError}</span>
                     )}
+                  </div>
+                )}
+
+                {(pushLogs.length > 0 || pushLoading) && (
+                  <div className="cartoon-card p-3 bg-black text-[#4AF626] font-mono text-[10px] flex flex-col gap-1.5 border-2 border-black max-h-[150px] overflow-y-auto shadow-[2px_2px_0px_rgba(0,0,0,1)]">
+                    <div className="border-b border-[#333] pb-1 font-bold text-gray-400">PROCESS LOGS</div>
+                    {pushLogs.map((log, idx) => (
+                      <div key={idx}>
+                        {log.startsWith('ความล้มเหลว:') || log.startsWith('ข้อผิดพลาด:') ? (
+                          <span className="text-red-500">{log}</span>
+                        ) : (
+                          <span>{log}</span>
+                        )}
+                      </div>
+                    ))}
+                    {pushLoading && <span className="animate-pulse text-gray-400">&gt; กำลังดำเนินการ...</span>}
                   </div>
                 )}
 
@@ -1361,5 +1385,13 @@ export default function LocalEditorPage() {
 
       </div>
     </main>
+  );
+}
+
+export default function LocalEditorPage() {
+  return (
+    <AdminSecurityWrapper>
+      <LocalEditorContent />
+    </AdminSecurityWrapper>
   );
 }

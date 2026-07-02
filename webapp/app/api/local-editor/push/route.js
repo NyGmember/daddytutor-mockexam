@@ -11,16 +11,21 @@ export async function POST(request) {
     return NextResponse.json({ error: 'Forbidden in production' }, { status: 403 });
   }
 
+  const logs = [];
   try {
     const body = await request.json();
     const { selectedIds = [], version, commitMessage } = body;
 
+    logs.push(`เริ่มกระบวนการสร้างแพตช์เวอร์ชัน ${version} สำหรับ ${selectedIds.length} ข้อสอบ...`);
+
     if (!version) {
-      return NextResponse.json({ error: 'Missing release version' }, { status: 400 });
+      logs.push('ความล้มเหลว: ไม่ได้ระบุเลขเวอร์ชัน');
+      return NextResponse.json({ error: 'Missing release version', processLogs: logs }, { status: 400 });
     }
 
     if (selectedIds.length === 0) {
-      return NextResponse.json({ error: 'Please select at least one question to push' }, { status: 400 });
+      logs.push('ความล้มเหลว: ไม่ได้เลือกข้อสอบใดๆ');
+      return NextResponse.json({ error: 'Please select at least one question to push', processLogs: logs }, { status: 400 });
     }
 
     const gitRoot = path.join(process.cwd(), '..');
@@ -33,11 +38,14 @@ export async function POST(request) {
     const imageFilesToStage = new Set();
 
     for (const id of selectedIds) {
+      logs.push(`กำลังวิเคราะห์และแปลงข้อสอบ ID: ${id}...`);
       const aPath = path.join(answersDir, `${id}.md`);
 
       if (!fs.existsSync(aPath)) {
+        logs.push(`ความล้มเหลว: ไม่พบไฟล์เฉลยของ ID: ${id} บนฮาร์ดดิสก์`);
         return NextResponse.json({ 
-          error: `Answer file for question ID ${id} not found on disk.` 
+          error: `Answer file for question ID ${id} not found on disk.`,
+          processLogs: logs
         }, { status: 404 });
       }
 
@@ -46,8 +54,10 @@ export async function POST(request) {
       // Parse YAML frontmatter and body in answer
       const parts = answerContent.split('---');
       if (parts.length < 3) {
+        logs.push(`ความล้มเหลว: รูปแบบเฉลยของ ID: ${id} ไม่ถูกต้อง`);
         return NextResponse.json({ 
-          error: `Invalid answer file format for ${id}` 
+          error: `Invalid answer file format for ${id}`,
+          processLogs: logs
         }, { status: 500 });
       }
 
@@ -65,14 +75,12 @@ export async function POST(request) {
         questionText = questionText.replace(/^#\s*คำถาม\s*\n+/, '').trim();
         answerText = bodyText.substring(explainIndex + '# คำอธิบายและวิธีทำ'.length).trim();
       } else {
-        // Legacy format or missing question block in answer file
         if (explainIndex > -1) {
           answerText = bodyText.substring(explainIndex + '# คำอธิบายและวิธีทำ'.length).trim();
         } else {
           answerText = bodyText;
         }
         
-        // Fallback to legacy questions/ folder or archive/questions/ folder if needed
         const qPath = path.join(questionsDir, `${id}.md`);
         const archiveQPath = path.join(gitRoot, 'archive', 'questions', `${id}.md`);
         if (fs.existsSync(qPath)) {
@@ -133,11 +141,12 @@ export async function POST(request) {
         year: parseInt(metadata.year) || 2557,
         difficulty: parseInt(metadata.difficulty) || 3,
         questionText,
-        answerText, // CLEAN explanation body for DB storage (stripped of frontmatter)
+        answerText,
         correctAnswer: (metadata.answer || '').toString(),
         images,
         examSet
       });
+      logs.push(`  - โหลดและเตรียมข้อมูลข้อสอบ ${id} สำเร็จ`);
     }
 
     // 2. Ensure releases folder exists
@@ -150,6 +159,7 @@ export async function POST(request) {
     const patchPath = path.join(releasesDir, patchFilename);
     const patchData = { questions: questionsList };
     fs.writeFileSync(patchPath, JSON.stringify(patchData, null, 2), 'utf8');
+    logs.push(`เขียนไฟล์แพตช์ตัวใหม่สำเร็จที่: releases/${patchFilename}`);
 
     // 4. Update version.json
     const versionPath = path.join(gitRoot, 'version.json');
@@ -159,6 +169,7 @@ export async function POST(request) {
       try {
         versionCatalog = JSON.parse(fs.readFileSync(versionPath, 'utf8'));
       } catch (err) {
+        logs.push('คำเตือน: อ่านไฟล์ version.json ล้มเหลว ทำการสร้างไฟล์ใหม่');
         console.warn('Failed parsing version.json, creating a new one:', err);
       }
     }
@@ -172,6 +183,7 @@ export async function POST(request) {
     }
 
     fs.writeFileSync(versionPath, JSON.stringify(versionCatalog, null, 2), 'utf8');
+    logs.push('ปรับปรุงรุ่นแค็ตตาล็อกในไฟล์ version.json สำเร็จ');
 
     // 4.5. Move published questions to the archive folder on disk
     const archiveQuestionsDir = path.join(gitRoot, 'archive', 'questions');
@@ -197,20 +209,20 @@ export async function POST(request) {
       if (fs.existsSync(aSrc)) {
         fs.renameSync(aSrc, aDest);
       }
+      logs.push(`ย้ายไฟล์ข้อสอบและเฉลย ${id} เข้าคลังเก็บไฟล์หลัก (archive) สำเร็จ`);
     }
 
     // 4.6. Upsert the published questions into the local SQLite database
+    logs.push('กำลังซิงค์ข้อสอบที่สร้างเข้าไปในฐานข้อมูล SQLite เครื่องโฮสต์...');
     for (const q of questionsList) {
       const subjectName = q.subjectId === 'mathematics' ? 'คณิตศาสตร์' : 'วิทยาศาสตร์';
       
-      // A. Ensure Subject exists
       await prisma.subject.upsert({
         where: { id: q.subjectId },
         update: { nameTh: subjectName },
         create: { id: q.subjectId, nameTh: subjectName }
       });
 
-      // B. Ensure Level exists
       await prisma.level.upsert({
         where: { id: q.levelId },
         update: {},
@@ -221,14 +233,12 @@ export async function POST(request) {
         }
       });
 
-      // C. Ensure Topic exists
       await prisma.topic.upsert({
         where: { id: q.topicId },
         update: { nameTh: q.topicNameTh, levelId: q.levelId },
         create: { id: q.topicId, nameTh: q.topicNameTh, levelId: q.levelId }
       });
 
-      // D. Save Question details
       await prisma.question.upsert({
         where: { id: q.id },
         update: {
@@ -240,7 +250,8 @@ export async function POST(request) {
           questionText: q.questionText,
           answerText: q.answerText,
           correctAnswer: q.correctAnswer,
-          images: JSON.stringify(q.images || [])
+          images: JSON.stringify(q.images || []),
+          examSet: q.examSet
         },
         create: {
           id: q.id,
@@ -252,18 +263,20 @@ export async function POST(request) {
           questionText: q.questionText,
           answerText: q.answerText,
           correctAnswer: q.correctAnswer,
-          images: JSON.stringify(q.images || [])
+          images: JSON.stringify(q.images || []),
+          examSet: q.examSet
         }
       });
     }
+    logs.push('บันทึกคำถามในฐานข้อมูล SQLite สำเร็จ');
 
     // 5. Git Commit and Push
+    logs.push('เริ่มกระบวนการจัดเก็บเวอร์ชันด้วย Git (Git Commit)...');
     let gitLog = '';
     let gitPushSuccess = true;
     let gitPushError = '';
 
     try {
-      // Stage files: version.json, patch file, modified questions/answers, and associated images
       execSync('git add version.json', { cwd: gitRoot });
       execSync(`git add releases/${patchFilename}`, { cwd: gitRoot });
       
@@ -294,6 +307,7 @@ export async function POST(request) {
       const escapedMsg = msg.replace(/"/g, '\\"');
       const commitOut = execSync(`git commit -m "${escapedMsg}"`, { cwd: gitRoot, encoding: 'utf8' });
       gitLog += `Commit Output:\n${commitOut}\n`;
+      logs.push('บันทึกการจัดเก็บ (Git Commit) สำเร็จ');
 
       // Detect active branch name to set upstream push destination
       let currentBranch = 'master';
@@ -302,23 +316,29 @@ export async function POST(request) {
       } catch (branchErr) {
         console.warn('Failed to detect branch name, defaulting to master:', branchErr.message);
       }
+      logs.push(`กำลังใช้งานสาขา (Git Branch): ${currentBranch}`);
 
-      // Push changes using upstream tracking config
+      // Push changes
+      logs.push(`กำลังอัปโหลดขึ้น GitHub (Git Push) ไปยัง origin ${currentBranch}...`);
       try {
         const pushOut = execSync(`git push -u origin ${currentBranch}`, { cwd: gitRoot, encoding: 'utf8' });
         gitLog += `Push Output:\n${pushOut}\n`;
+        logs.push('ส่งไฟล์ขึ้น GitHub (Git Push) สำเร็จเสร็จสมบูรณ์!');
       } catch (pushErr) {
         gitPushSuccess = false;
         gitPushError = pushErr.stderr || pushErr.message;
         gitLog += `Push Failed:\n${gitPushError}\n`;
+        logs.push(`ข้อผิดพลาดการ Push: ไม่สามารถส่งโค้ดขึ้น GitHub ได้ (${gitPushError.trim()})`);
       }
 
     } catch (gitErr) {
       console.error('Git execution failed:', gitErr);
+      logs.push(`ความล้มเหลว: คำสั่ง Git ผิดพลาด: ${gitErr.message}`);
       return NextResponse.json({
         success: false,
         error: `Git command failed: ${gitErr.message}`,
-        details: gitErr.stderr || gitErr.stdout || ''
+        details: gitErr.stderr || gitErr.stdout || '',
+        processLogs: logs
       }, { status: 500 });
     }
 
@@ -330,11 +350,13 @@ export async function POST(request) {
       patchPath: `/releases/${patchFilename}`,
       gitPushSuccess,
       gitPushError,
-      gitLog
+      gitLog,
+      processLogs: logs
     });
 
   } catch (error) {
     console.error('Error in push API:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    logs.push(`เกิดข้อผิดพลาดระดับระบบ: ${error.message}`);
+    return NextResponse.json({ error: 'Internal server error', processLogs: logs }, { status: 500 });
   }
 }

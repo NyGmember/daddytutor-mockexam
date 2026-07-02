@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { BookOpen, Layers, Settings, HelpCircle, Loader2, ListFilter, Clipboard } from 'lucide-react';
+import { getCookie, setCookie } from '@/lib/cookies';
 
 export default function CustomExamForm({ subjects }) {
   const router = useRouter();
@@ -24,20 +25,97 @@ export default function CustomExamForm({ subjects }) {
   const [generatingExam, setGeneratingExam] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [warningMsg, setWarningMsg] = useState('');
+  const [hasLoadedCookies, setHasLoadedCookies] = useState(false);
 
   // Get levels for selected subject
   const currentSubject = subjects.find(s => s.id === selectedSubjectId);
   const availableLevels = currentSubject?.levels || [];
 
+  // Load cookies on mount
+  useEffect(() => {
+    const savedActiveTab = getCookie('dt_active_tab');
+    if (savedActiveTab) setActiveTab(savedActiveTab);
+
+    const savedSubId = getCookie('dt_selected_subject_id');
+    if (savedSubId) setSelectedSubjectId(savedSubId);
+
+    const savedLevelId = getCookie('dt_selected_level_id');
+    if (savedLevelId) setSelectedLevelId(savedLevelId);
+
+    const savedQCount = getCookie('dt_question_count');
+    if (savedQCount) setQuestionCount(parseInt(savedQCount));
+
+    const savedExamSet = getCookie('dt_set_filter_exam_set');
+    if (savedExamSet) setSetFilterExamSet(savedExamSet);
+
+    const savedSetSub = getCookie('dt_set_filter_subject');
+    if (savedSetSub) setSetFilterSubject(savedSetSub);
+
+    const savedSetLvl = getCookie('dt_set_filter_level');
+    if (savedSetLvl) setSetFilterLevel(savedSetLvl);
+
+    const savedSetYear = getCookie('dt_set_filter_year');
+    if (savedSetYear) setSetFilterYear(savedSetYear);
+
+    setHasLoadedCookies(true);
+  }, []);
+
+  // Save cookies when states change
+  useEffect(() => {
+    if (!hasLoadedCookies) return;
+    setCookie('dt_active_tab', activeTab);
+  }, [activeTab, hasLoadedCookies]);
+
+  useEffect(() => {
+    if (!hasLoadedCookies) return;
+    setCookie('dt_selected_subject_id', selectedSubjectId);
+  }, [selectedSubjectId, hasLoadedCookies]);
+
+  useEffect(() => {
+    if (!hasLoadedCookies) return;
+    setCookie('dt_selected_level_id', selectedLevelId);
+  }, [selectedLevelId, hasLoadedCookies]);
+
+  useEffect(() => {
+    if (!hasLoadedCookies) return;
+    setCookie('dt_question_count', questionCount);
+  }, [questionCount, hasLoadedCookies]);
+
+  useEffect(() => {
+    if (!hasLoadedCookies) return;
+    setCookie('dt_set_filter_exam_set', setFilterExamSet);
+  }, [setFilterExamSet, hasLoadedCookies]);
+
+  useEffect(() => {
+    if (!hasLoadedCookies) return;
+    setCookie('dt_set_filter_subject', setFilterSubject);
+  }, [setFilterSubject, hasLoadedCookies]);
+
+  useEffect(() => {
+    if (!hasLoadedCookies) return;
+    setCookie('dt_set_filter_level', setFilterLevel);
+  }, [setFilterLevel, hasLoadedCookies]);
+
+  useEffect(() => {
+    if (!hasLoadedCookies) return;
+    setCookie('dt_set_filter_year', setFilterYear);
+  }, [setFilterYear, hasLoadedCookies]);
+
+  useEffect(() => {
+    if (!hasLoadedCookies || selectedTopicIds.length === 0) return;
+    setCookie('dt_selected_topic_ids', JSON.stringify(selectedTopicIds));
+  }, [selectedTopicIds, hasLoadedCookies]);
+
   // Set default level when subject changes (default to lower_secondary / มัธยมต้น)
   useEffect(() => {
+    if (!hasLoadedCookies) return;
     if (availableLevels.length > 0) {
       const lowerSecondary = availableLevels.find(l => l.id.includes('lower_secondary'));
       setSelectedLevelId(lowerSecondary ? lowerSecondary.id : availableLevels[0].id);
     } else {
       setSelectedLevelId('');
     }
-  }, [selectedSubjectId, availableLevels]);
+  }, [selectedSubjectId, availableLevels, hasLoadedCookies]);
 
   // Load topics dynamically when subject or level changes
   useEffect(() => {
@@ -55,6 +133,23 @@ export default function CustomExamForm({ subjects }) {
         if (res.ok) {
           const data = await res.json();
           setAvailableTopics(data);
+          
+          // Try to restore topic selection from cookie first
+          const savedTopicsStr = getCookie('dt_selected_topic_ids');
+          if (savedTopicsStr) {
+            try {
+              const savedTopics = JSON.parse(savedTopicsStr);
+              const valid = savedTopics.filter(id => data.some(t => t.id === id));
+              if (valid.length > 0) {
+                setSelectedTopicIds(valid);
+                setLoadingTopics(false);
+                return;
+              }
+            } catch (e) {
+              console.error(e);
+            }
+          }
+
           // By default, select all topics
           setSelectedTopicIds(data.map(t => t.id));
         } else {
@@ -160,6 +255,15 @@ export default function CustomExamForm({ subjects }) {
       }
 
       sessionStorage.setItem('current_exam', JSON.stringify(data.questions));
+      sessionStorage.setItem('current_exam_index', '0');
+      sessionStorage.setItem('current_exam_meta', JSON.stringify({
+        mode: 'topic',
+        subjectId: selectedSubjectId,
+        levelId: selectedLevelId,
+        questionCount: questionCount,
+        topicIds: selectedTopicIds,
+        selectedPaperName: `แบบฝึกหัดรายหัวข้อ (${selectedSubjectId === 'mathematics' ? 'คณิตศาสตร์' : 'วิทยาศาสตร์'})`
+      }));
 
       if (data.warning) {
         setWarningMsg(data.warning);
@@ -293,6 +397,15 @@ export default function CustomExamForm({ subjects }) {
       }
 
       sessionStorage.setItem('current_exam', JSON.stringify(data.questions));
+      sessionStorage.setItem('current_exam_index', '0');
+      sessionStorage.setItem('current_exam_meta', JSON.stringify({
+        mode: 'set',
+        examSet: selectedPaper.examSet,
+        subjectId: selectedPaper.subjectId,
+        year: selectedPaper.year,
+        grade: selectedPaper.grade,
+        selectedPaperName: selectedPaper.titleTh
+      }));
 
       if (data.warning) {
         setWarningMsg(data.warning);

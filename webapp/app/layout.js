@@ -1,4 +1,5 @@
 import "./globals.css";
+import BugReportOverlay from "@/components/BugReportOverlay";
 
 export const metadata = {
   title: "DaddyTutor Mock-Exam",
@@ -17,6 +18,7 @@ export default function RootLayout({ children }) {
       </head>
       <body>
         {children}
+        <BugReportOverlay />
       </body>
     </html>
   );
