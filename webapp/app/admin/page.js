@@ -89,10 +89,12 @@ function BugReportDashboard() {
             <RefreshCw size={14} />
             หน้าอัปเดตข้อสอบ
           </Link>
-          <Link href="/local-editor" className="cartoon-btn py-1 px-3 text-xs gap-1.5 bg-blue-500 text-white">
-            <Wrench size={14} />
-            เครื่องมือเขียนโจทย์
-          </Link>
+          {process.env.NODE_ENV !== 'production' && (
+            <Link href="/local-editor" className="cartoon-btn py-1 px-3 text-xs gap-1.5 bg-blue-500 text-white">
+              <Wrench size={14} />
+              เครื่องมือเขียนโจทย์
+            </Link>
+          )}
         </div>
       </div>
 

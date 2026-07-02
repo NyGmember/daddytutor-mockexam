@@ -12,6 +12,7 @@ export default function BugReportOverlay() {
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+  const [host, setHost] = useState('');
 
   // Exam-specific metadata (read from sessionStorage)
   const [examMeta, setExamMeta] = useState(null);
@@ -20,6 +21,9 @@ export default function BugReportOverlay() {
 
   // Load patch version and exam meta
   useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setHost(window.location.host);
+    }
     async function loadVersion() {
       try {
         const res = await fetch('/api/exam/latest-version');
@@ -131,11 +135,10 @@ export default function BugReportOverlay() {
       {/* Floating Bug FAB */}
       <button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-4 right-4 z-50 bg-[#D9534F] text-white p-3.5 rounded-full border-4 border-black hover:bg-[#c9302c] active:scale-95 transition-all shadow-[4px_4px_0px_rgba(0,0,0,1)] hover:shadow-[2px_2px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] flex items-center gap-1.5 font-black text-sm"
+        className="fixed bottom-4 right-4 z-50 bg-[#D9534F] text-white p-3 rounded-full border-4 border-black hover:bg-[#c9302c] active:scale-95 transition-all shadow-[4px_4px_0px_rgba(0,0,0,1)] hover:shadow-[2px_2px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] flex items-center justify-center"
         title="รายงานปัญหาการใช้งาน"
       >
         <Bug size={20} />
-        <span className="hidden md:inline">รายงานปัญหา</span>
       </button>
 
       {/* Report Modal */}
@@ -173,7 +176,7 @@ export default function BugReportOverlay() {
                 <div className="bg-[#FAF7F0] p-3 rounded-lg border-2 border-dashed border-[#ccc] text-[11px] font-bold text-[#5E5E5E] flex flex-col gap-1">
                   <div className="flex justify-between">
                     <span>Host:</span>
-                    <span className="text-[#2D2D2D]">{window.location.host}</span>
+                    <span className="text-[#2D2D2D]">{host}</span>
                   </div>
                   <div className="flex justify-between">
                     <span>หน้าปัจจุบัน:</span>

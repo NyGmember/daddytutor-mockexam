@@ -8,6 +8,7 @@ import {
   BookOpen, Layers, Star, Play, Clipboard
 } from 'lucide-react';
 import Link from 'next/link';
+import { notFound } from 'next/navigation';
 import AdminSecurityWrapper from '@/components/AdminSecurityWrapper';
 
 function LocalEditorContent() {
@@ -1389,6 +1390,9 @@ function LocalEditorContent() {
 }
 
 export default function LocalEditorPage() {
+  if (process.env.NODE_ENV === 'production') {
+    notFound();
+  }
   return (
     <AdminSecurityWrapper>
       <LocalEditorContent />
