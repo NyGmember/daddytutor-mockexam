@@ -20,6 +20,12 @@ export default function CustomExamForm({ subjects }) {
   const [selectedTopicIds, setSelectedTopicIds] = useState([]);
   const [questionCount, setQuestionCount] = useState(10);
 
+  // Filters for Exam Sets Mode
+  const [setFilterExamSet, setSetFilterExamSet] = useState('ทั้งหมด');
+  const [setFilterSubject, setSetFilterSubject] = useState('ทั้งหมด'); // 'ทั้งหมด', 'mathematics', 'science', 'thai', 'english'
+  const [setFilterLevel, setSetFilterLevel] = useState('มัธยมต้น'); // 'ประถม', 'มัธยมต้น', 'มัธยมปลาย'
+  const [setFilterYear, setSetFilterYear] = useState('ทั้งหมด');
+
   // UI States
   const [loadingTopics, setLoadingTopics] = useState(false);
   const [generatingExam, setGeneratingExam] = useState(false);
@@ -287,12 +293,6 @@ export default function CustomExamForm({ subjects }) {
   const [metaExamSets, setMetaExamSets] = useState(['TEDET', 'O-NET']);
   const [metaYears, setMetaYears] = useState([]);
   const [loadingMeta, setLoadingMeta] = useState(false);
-
-  // Filters for Exam Sets Mode
-  const [setFilterExamSet, setSetFilterExamSet] = useState('ทั้งหมด');
-  const [setFilterSubject, setSetFilterSubject] = useState('ทั้งหมด'); // 'ทั้งหมด', 'mathematics', 'science', 'thai', 'english'
-  const [setFilterLevel, setSetFilterLevel] = useState('มัธยมต้น'); // 'ประถม', 'มัธยมต้น', 'มัธยมปลาย'
-  const [setFilterYear, setSetFilterYear] = useState('ทั้งหมด');
 
   // Matching papers and selected paper states
   const [foundPapers, setFoundPapers] = useState([]);

@@ -1,0 +1,13 @@
+.git
+.venv
+__pycache__
+webapp/.next
+webapp/node_modules
+webapp/dev.db
+webapp/dev.db-journal
+webapp/.env
+webapp/.env.local
+answers
+archive
+questions
+releases
